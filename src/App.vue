@@ -1,10 +1,13 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
+  <PageNavbar></PageNavbar>
   <router-view/>
+  <PageFooter></PageFooter>
 </template>
+
+<script setup>
+import PageNavbar from "@/components/PageNavbar.vue";
+import PageFooter from "@/components/PageFooter.vue";
+</script>
 
 <style lang="scss">
 #app {
