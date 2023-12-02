@@ -1,12 +1,28 @@
 <script>
 export default {
-  name: "FriSportMainPage"
-}
+  name: "FriSportMainPage",
+  data() {
+    return {
+      isScaling: false,
+    };
+  },
+  mounted() {
+    // Start the scaling animation on component mount
+    this.startScalingAnimation();
+  },
+  methods: {
+    startScalingAnimation() {
+      setInterval(() => {
+        this.isScaling = !this.isScaling;
+      }, 2000); // Adjust the duration of each scaling phase (in milliseconds)
+    },
+  },
+};
 </script>
-<template>
 
+<template>
   <body>
-  <div class="scaled-image left">
+  <div class="scaled-image left" :class="{ 'scaling': isScaling }">
     <a href="your_destination_url">
       <img src="../assets/Images/lidl.jpg" alt="Image 5">
     </a>
@@ -79,9 +95,9 @@ export default {
     </ul>
   </div>
 
-  <div class="scaled-image right">
+  <div class="scaled-image right" :class="{ 'scaling': isScaling }">
     <a href="your_destination_url">
-      <img src="../assets/Images/lidl.jpg" alt="Image 5" style="object-fit: cover;">
+      <img src="../assets/Images/lidl.jpg" alt="Image 5">
     </a>
   </div>
   </body>
@@ -224,17 +240,17 @@ body {
   display: block;
   text-decoration: none;
   overflow: hidden;
-  transition: transform 0.3s;
+  transition: transform 1.5s;
+}
+
+.scaling {
+  transform: scale(1.10);
 }
 
 .scaled-image img {
   text-align: center;
   width: 18vw;
   height: 50%;
-}
-
-.scaled-image:hover {
-  transform: scale(1.1);
 }
 
 .left {

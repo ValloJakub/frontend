@@ -1,7 +1,30 @@
 <script>
 export default {
-  name: "PageNavbar"
-}
+  name: "PageNavbar",
+  mounted() {
+    this.animateSearchPlaceholder();
+  },
+  methods: {
+    animateSearchPlaceholder() {
+      const searchInput = document.querySelector('.search input');
+      const placeholderText = "Search Sports News";
+      let index = 0;
+
+      setInterval(() => {
+        const currentPlaceholder = placeholderText.substring(0, index + 1);
+        searchInput.setAttribute('placeholder', currentPlaceholder);
+
+        index++;
+        if (index > placeholderText.length) {
+          index = 0;
+          setTimeout(() => {
+            searchInput.setAttribute('placeholder', '');
+          }, 1500); // Adjust the delay before starting the animation again
+        }
+      }, 150); // Adjust the typing speed
+    },
+  },
+};
 </script>
 
 <template>

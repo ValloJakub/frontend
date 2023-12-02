@@ -1,11 +1,29 @@
 <script>
 export default {
-  name: "LoginPage"
-}
+  name: "LoginPage",
+  data() {
+    return {
+      email: "",
+      password: "",
+    };
+  },
+  computed: {
+    emailPlaceholder() {
+      return this.email ? '' : 'name@example.com';
+    },
+    passwordPlaceholder() {
+      return this.password ? '' : 'Password';
+    },
+  },
+  methods: {
+    handleSubmit() {
+      // Your form submission logic
+    },
+  },
+};
 </script>
 
 <template>
-
   <div class="login-body" tabindex="-1" role="dialog" id="modalSignin">
     <div class="modal-dialog" role="document">
       <div class="modal-content rounded-4 shadow">
@@ -14,16 +32,19 @@ export default {
         </div>
 
         <div class="modal-body p-5 pt-0">
-          <form class="">
+          <div class="text-body-secondary" style="font-size: 36px; margin-top: 10px;">
+            Sign up for free.
+          </div>
+          <form @submit.prevent="handleSubmit">
             <div class="form-floating mb-3">
-              <input type="email" class="form-control rounded-3" id="floatingInput" placeholder="name@example.com" style="font-size: 26px">
-              <label for="floatingInput" style="font-size: 28px">Email adr.</label>
+              <input v-model="email" type="email" class="form-control rounded-3" id="floatingInput" :placeholder="emailPlaceholder" style="font-size: 26px">
+              <label for="floatingInput" :class="{ 'active': email }" style="font-size: 28px">{{ email ? '' : 'name@example.com' }}</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-3" id="floatingPassword" placeholder="Password" style="font-size: 26px">
-              <label for="floatingPassword" style="font-size: 28px">Password</label>
+              <input v-model="password" type="password" class="form-control rounded-3" id="floatingPassword" :placeholder="passwordPlaceholder" style="font-size: 26px">
+              <label for="floatingPassword" :class="{ 'active': password }" style="font-size: 28px">{{ password ? '' : 'Password' }}</label>
             </div>
-            <button class="sign-up" type="submit" style="font-size: 30px; padding: 10px 20px;">Sign up</button>
+            <button type="submit" class="sign-up" style="font-size: 30px; padding: 10px 20px;">Sign up</button>
             <div class="text-body-secondary" style="font-size: 28px; margin-top: 10px;">
               By clicking Sign up, you agree to the terms of use.
             </div>
@@ -52,7 +73,6 @@ export default {
       </div>
     </div>
   </div>
-
 </template>
 
 <style scoped lang="scss">
@@ -131,5 +151,19 @@ body {
 .form-floating {
   margin-top: 5px;
   margin-bottom: 5px;
+}
+
+.modal-content {
+  max-width: 600px;
+  max-height: 900px;
+  margin: 0 auto;
+}
+
+.modal-header {
+  padding: 2rem 2rem 1rem;
+}
+
+.modal-body {
+  padding: 1rem 2rem;
 }
 </style>
