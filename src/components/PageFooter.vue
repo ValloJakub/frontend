@@ -11,8 +11,6 @@ export default {
   },
   methods: {
     setLastUpdated() {
-      // Replace this with your logic to get the last updated timestamp
-      // For demonstration purposes, I'm using the current date and time
       const currentDate = new Date();
       const formattedDate = currentDate.toLocaleString();
       this.lastUpdated = formattedDate;

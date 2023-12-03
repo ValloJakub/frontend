@@ -7,14 +7,13 @@ export default {
     };
   },
   mounted() {
-    // Start the scaling animation on component mount
     this.startScalingAnimation();
   },
   methods: {
     startScalingAnimation() {
       setInterval(() => {
         this.isScaling = !this.isScaling;
-      }, 2000); // Adjust the duration of each scaling phase (in milliseconds)
+      }, 2000);
     },
   },
 };

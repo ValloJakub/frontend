@@ -60,7 +60,7 @@ export default {
           <a href="#" class="dropbtn"><i class="bi bi-person-circle"></i></a>
           <div class="dropdown-content">
             <router-link to="/login-page">Log in</router-link>
-            <a href="#">Register</a>
+            <router-link to="/register-page">Register</router-link>
           </div>
         </li>
         <li>
@@ -169,7 +169,7 @@ nav {
   margin-top: 25px;
   position: fixed;
   top: -60px; /* Initially hide the navbar above the viewport */
-  width: 100%;
+  width: 110%;
   background-color: #333;
   color: #fff;
   padding: 15px;

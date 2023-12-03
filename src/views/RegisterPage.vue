@@ -1,10 +1,12 @@
 <script>
 export default {
-  name: "LoginPage",
+  name: "RegisterPage",
   data() {
     return {
       email: "",
       password: "",
+      confirmPassword: "",
+      number: "",
     };
   },
   computed: {
@@ -13,6 +15,12 @@ export default {
     },
     passwordPlaceholder() {
       return this.password ? '' : 'Password';
+    },
+    confirmPasswordPlaceholder() {
+      return this.confirmPassword ? '' : 'Type Password Again';
+    },
+    numberPlaceholder() {
+      return this.number ? '' : 'Phone Number';
     },
   },
 };
@@ -28,20 +36,32 @@ export default {
 
         <div class="modal-body p-5 pt-0">
           <div class="text-body-secondary" style="font-size: 36px; margin-top: 10px;">
-            Log in to your Account
+            Create Account
           </div>
           <form @submit.prevent="handleSubmit">
             <div class="form-floating mb-3">
               <input v-model="email" type="email" class="form-control rounded-3" id="floatingInput" :placeholder="emailPlaceholder" style="font-size: 24px">
               <label for="floatingInput" :class="{ 'active': email }" style="font-size: 16px">{{ email ? '' : 'name@example.com' }}</label>
             </div>
+
             <div class="form-floating mb-3">
               <input v-model="password" type="password" class="form-control rounded-3" id="floatingPassword" :placeholder="passwordPlaceholder" style="font-size: 24px">
               <label for="floatingPassword" :class="{ 'active': password }" style="font-size: 16px">{{ password ? '' : 'Password' }}</label>
             </div>
-            <button type="submit" class="sign-up" style="font-size: 30px; padding: 10px 20px;">Log in</button>
+
+            <div class="form-floating mb-3">
+              <input v-model="confirmPassword" type="password" class="form-control rounded-3" id="floatingConfirmPassword" :placeholder="confirmPasswordPlaceholder" style="font-size: 24px">
+              <label for="floatingConfirmPassword" :class="{ 'active': confirmPassword }" style="font-size: 16px">{{ confirmPassword ? '' : 'Type Password Again' }}</label>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input v-model="number" type="text" inputmode="numeric" class="form-control rounded-3" id="floatingNumber" :placeholder="numberPlaceholder" style="font-size: 24px; padding-right: 0;">
+              <label for="floatingNumber" :class="{ 'active': number }" style="font-size: 16px">{{ number ? '' : 'Phone Number' }}</label>
+            </div>
+
+            <button type="submit" class="sign-up" style="font-size: 30px; padding: 10px 20px;">Create Account</button>
             <div class="text-body-secondary" style="font-size: 28px; margin-top: 10px;">
-              By clicking Log in, you agree to the terms of use
+              By clicking Create account, you agree to the terms of use
             </div>
             <hr class="my-4">
             <h2 class="fs-5 fw-bold mb-3" style="font-size: 36px; color: white">Or use a third-party</h2>
@@ -150,7 +170,7 @@ body {
 
 .modal-content {
   max-width: 600px;
-  max-height: 900px;
+  max-height: 1200px;
   margin: 0 auto;
 }
 

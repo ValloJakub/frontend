@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import FriSportMainPage from "@/views/FriSportMainPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import NhlPage from "@/views/NhlPage.vue";
+import RegisterPage from "@/views/RegisterPage.vue";
 const routes = [
   {
     path: '/',
@@ -17,6 +18,11 @@ const routes = [
     path: '/nhl-page',
     name: 'NhlPage',
     component: NhlPage
+  },
+  {
+    path: '/register-page',
+    name: 'RegisterPage',
+    component: RegisterPage
   },
 ]
 

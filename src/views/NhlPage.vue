@@ -1,158 +1,104 @@
 <script>
+import axios from 'axios';
+
 export default {
   name: "NhlPage",
   data() {
     return {
       isScaling: false,
+      loading: false,
+      articles: [],
+      currentPage: 1,
     };
   },
   mounted() {
-    // Start the scaling animation on component mount
     this.startScalingAnimation();
+    this.fetchArticles();
   },
   methods: {
     startScalingAnimation() {
       setInterval(() => {
         this.isScaling = !this.isScaling;
-      }, 2000); // Adjust the duration of each scaling phase (in milliseconds)
+      }, 2000);
+    },
+    async fetchArticles() {
+      this.loading = true;
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/articles/');
+        console.log('Response:', response.data);
+
+        if (response.data) {
+          // Reverse the order of articles before assigning to this.articles
+          this.articles = response.data.reverse();
+        } else {
+          console.error('Error fetching articles: Response data or results are null or undefined');
+        }
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    loadMore() {
+      if (this.articles.length) {
+        this.currentPage++;
+        this.fetchArticles();
+      }
     },
   },
 };
 </script>
 
 <template>
-
   <main>
+
     <div class="scaled-image left" :class="{ 'scaling': isScaling }">
       <a href="your_destination_url">
         <img src="../assets/Images/lidl.jpg" alt="Image 5">
       </a>
     </div>
 
-    <div class="news-box">
-      <article class="news-item side-item cat-item">
-        <a class="news-item-image" href="#">
-          <picture>
-        <span>
-          <img alt="Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal" src="../assets/Images/chicago.jpg" decoding="async" data-nimg="responsive" class="side-article lazy-load">
-          <noscript></noscript>
-        </span>
-          </picture>
-        </a>
-        <div class="news-item-data">
-          <div class="news-item-category-wrapper">
+    <div v-if="loading" class="loading">Loading...</div>
+
+    <div v-if="articles && articles.length" class="nhl-articles">
+      <div v-for="article in articles" :key="article.id" class="news-box">
+        <article class="news-item side-item cat-item">
+          <a :href="article.url" class="news-item-image">
+            <picture>
+              <span>
+                <img
+                    :src="article.image"
+                    :alt="article.title"
+                    decoding="async"
+                    data-nimg="responsive"
+                    class="side-article lazy-load"
+                />
+                <noscript></noscript>
+              </span>
+            </picture>
+          </a>
+          <div class="news-item-data">
+            <div class="news-item-category-wrapper">
+              <!-- Add category if available -->
+            </div>
+            <h2 class="news-item-title">
+              <a :href="article.url">{{ article.title }}</a>
+            </h2>
+            <p class="news-item-description">{{ article.text }}</p>
           </div>
-          <h2 class="news-item-title">
-            <a href="#">Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal</a>
-          </h2>
-          <p class="news-item-description">Hokejový klub New Jersey Devils povolal z farmy v Utice do prvého tímu slovenského obrancu Šimona Nemca.</p>
-        </div>
-      </article>
+        </article>
+      </div>
+
+      <div v-if="articles.length" @click="loadMore" style="cursor: pointer; color: blue;">
+        Load more...
+      </div>
     </div>
 
-    <div class="news-box">
-      <article class="news-item side-item cat-item">
-        <a class="news-item-image" href="#">
-          <picture>
-        <span>
-          <img alt="Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal" src="../assets/Images/nhl1.avif" decoding="async" data-nimg="responsive" class="side-article lazy-load">
-          <noscript></noscript>
-        </span>
-          </picture>
-        </a>
-        <div class="news-item-data">
-          <div class="news-item-category-wrapper">
-          </div>
-          <h2 class="news-item-title">
-            <a href="#">Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal</a>
-          </h2>
-          <p class="news-item-description">Hokejový klub New Jersey Devils povolal z farmy v Utice do prvého tímu slovenského obrancu Šimona Nemca.</p>
-        </div>
-      </article>
-    </div>
-
-    <div class="news-box">
-      <article class="news-item side-item cat-item">
-        <a class="news-item-image" href="#">
-          <picture>
-        <span>
-          <img alt="Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal" src="../assets/Images/nhl2.jpg" decoding="async" data-nimg="responsive" class="side-article lazy-load">
-          <noscript></noscript>
-        </span>
-          </picture>
-        </a>
-        <div class="news-item-data">
-          <div class="news-item-category-wrapper">
-          </div>
-          <h2 class="news-item-title">
-            <a href="#">Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal</a>
-          </h2>
-          <p class="news-item-description">Hokejový klub New Jersey Devils povolal z farmy v Utice do prvého tímu slovenského obrancu Šimona Nemca.</p>
-        </div>
-      </article>
-    </div>
-
-    <div class="news-box">
-      <article class="news-item side-item cat-item">
-        <a class="news-item-image" href="#">
-          <picture>
-        <span>
-          <img alt="Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal" src="../assets/Images/nhl3.jpg" decoding="async" data-nimg="responsive" class="side-article lazy-load">
-          <noscript></noscript>
-        </span>
-          </picture>
-        </a>
-        <div class="news-item-data">
-          <div class="news-item-category-wrapper">
-          </div>
-          <h2 class="news-item-title">
-            <a href="#">Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal</a>
-          </h2>
-          <p class="news-item-description">Hokejový klub New Jersey Devils povolal z farmy v Utice do prvého tímu slovenského obrancu Šimona Nemca.</p>
-        </div>
-      </article>
-    </div>
-
-    <div class="news-box">
-      <article class="news-item side-item cat-item">
-        <a class="news-item-image" href="#">
-          <picture>
-        <span>
-          <img alt="Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal" src="../assets/Images/nhl4.webp" decoding="async" data-nimg="responsive" class="side-article lazy-load">
-          <noscript></noscript>
-        </span>
-          </picture>
-        </a>
-        <div class="news-item-data">
-          <div class="news-item-category-wrapper">
-          </div>
-          <h2 class="news-item-title">
-            <a href="#">Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal</a>
-          </h2>
-          <p class="news-item-description">Hokejový klub New Jersey Devils povolal z farmy v Utice do prvého tímu slovenského obrancu Šimona Nemca.</p>
-        </div>
-      </article>
-    </div>
-
-    <div class="news-box">
-      <article class="news-item side-item cat-item">
-        <a class="news-item-image" href="#">
-          <picture>
-        <span>
-          <img alt="Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal" src="../assets/Images/toronto.jpg" decoding="async" data-nimg="responsive" class="side-article lazy-load">
-          <noscript></noscript>
-        </span>
-          </picture>
-        </a>
-        <div class="news-item-data">
-          <div class="news-item-category-wrapper">
-          </div>
-          <h2 class="news-item-title">
-            <a href="#">Tak predsa! Šimon Nemec dostal správu, na ktorú tak dlho čakal</a>
-          </h2>
-          <p class="news-item-description">Hokejový klub New Jersey Devils povolal z farmy v Utice do prvého tímu slovenského obrancu Šimona Nemca.</p>
-        </div>
-      </article>
+    <div aria-label="Page navigation example" class="pagination-container">
+      <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+      </ul>
     </div>
 
     <div class="scaled-image right" :class="{ 'scaling': isScaling }">
@@ -161,15 +107,6 @@ export default {
       </a>
     </div>
 
-    <div aria-label="Page navigation example" class="pagination-container">
-      <ul class="pagination">
-        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item"><a class="page-link" href="#">Next</a></li>
-      </ul>
-    </div>
   </main>
 </template>
 
