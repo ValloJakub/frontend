@@ -1,4 +1,6 @@
 <script>
+import axios from 'axios';
+
 export default {
   name: "RegisterPage",
   data() {
@@ -7,6 +9,7 @@ export default {
       password: "",
       confirmPassword: "",
       number: "",
+      errors: {},
     };
   },
   computed: {
@@ -23,6 +26,55 @@ export default {
       return this.number ? '' : 'Phone Number';
     },
   },
+  watch: {
+    email: 'validateEmail',
+    password: 'validatePassword',
+    confirmPassword: 'validatePassword',
+  },
+  methods: {
+    handleSubmit() {
+      if (this.validateForm()) {
+        const userData = {
+          email: this.email,
+          password: this.password,
+          password_confirmation: this.confirmPassword,
+          phone_number: this.number,
+        };
+
+        axios.post('http://127.0.0.1:8000/api/register/', userData)
+            .then(response => {
+              console.log('User registered successfully:', response.data);
+            })
+            .catch(error => {
+              console.error('Error registering user:', error);
+              if (error.response && error.response.data) {
+                this.errors = error.response.data;
+              }
+            });
+      }
+    },
+    validateEmail() {
+      this.errors.email = this.email ? '' : 'Email is required.';
+    },
+    validatePassword() {
+      this.errors.password = this.password ? '' : 'Password is required.';
+
+      // Password strength validation
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+      if (!passwordRegex.test(this.password)) {
+        this.errors.passwordStrength = 'Password must be at least 8 characters long and include at least one letter and one number.';
+      } else {
+        this.errors.passwordStrength = '';
+      }
+
+      this.errors.confirmPassword = this.password === this.confirmPassword ? '' : 'Passwords do not match.';
+    },
+    validateForm() {
+      this.validateEmail();
+      this.validatePassword();
+      return !Object.values(this.errors).some(error => error);
+    },
+  },
 };
 </script>
 
@@ -31,27 +83,31 @@ export default {
     <div class="modal-dialog" role="document">
       <div class="modal-content rounded-4 shadow">
         <div class="modal-header p-5 pb-4 border-bottom-0">
-          <h1 class="fw-bold mb-0 fs-2" style="color: white; font-size: 36px">Sign up for free</h1>
+          <h1 class="fw-bold mb-0 fs-2" style="color: white; font-size: 40px">Sign up for free</h1>
         </div>
 
         <div class="modal-body p-5 pt-0">
-          <div class="text-body-secondary" style="font-size: 36px; margin-top: 10px;">
-            Create Account
+          <div class="text-body-secondary" style="font-size: 36px; margin-top: 10px; color: black">
+            Create your Account now!
           </div>
           <form @submit.prevent="handleSubmit">
             <div class="form-floating mb-3">
               <input v-model="email" type="email" class="form-control rounded-3" id="floatingInput" :placeholder="emailPlaceholder" style="font-size: 24px">
               <label for="floatingInput" :class="{ 'active': email }" style="font-size: 16px">{{ email ? '' : 'name@example.com' }}</label>
+              <div v-if="errors.email" class="error-message">{{ errors.email[0] }}</div>
             </div>
 
             <div class="form-floating mb-3">
               <input v-model="password" type="password" class="form-control rounded-3" id="floatingPassword" :placeholder="passwordPlaceholder" style="font-size: 24px">
               <label for="floatingPassword" :class="{ 'active': password }" style="font-size: 16px">{{ password ? '' : 'Password' }}</label>
+              <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
+              <div v-if="errors.passwordStrength" class="error-message">{{ errors.passwordStrength }}</div>
             </div>
 
             <div class="form-floating mb-3">
               <input v-model="confirmPassword" type="password" class="form-control rounded-3" id="floatingConfirmPassword" :placeholder="confirmPasswordPlaceholder" style="font-size: 24px">
               <label for="floatingConfirmPassword" :class="{ 'active': confirmPassword }" style="font-size: 16px">{{ confirmPassword ? '' : 'Type Password Again' }}</label>
+              <div v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</div>
             </div>
 
             <div class="form-floating mb-3">
@@ -180,5 +236,11 @@ body {
 
 .modal-body {
   padding: 1rem 2rem;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
 }
 </style>
