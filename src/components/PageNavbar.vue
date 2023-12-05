@@ -1,7 +1,19 @@
 <script>
 export default {
   name: "PageNavbar",
+
+  data() {
+    return {
+      loggedIn: false, // Nie je prihlásený
+    };
+  },
+
   mounted() {
+    // Check user authentication status here and update the 'loggedIn' variable accordingly
+    // Example: You might use a Vuex store or another method to manage user authentication
+    // For simplicity, I'll set it to true in the example.
+    this.loggedIn = true;
+
     this.animateSearchPlaceholder();
   },
   methods: {
@@ -19,9 +31,9 @@ export default {
           index = 0;
           setTimeout(() => {
             searchInput.setAttribute('placeholder', '');
-          }, 1500); // Adjust the delay before starting the animation again
+          }, 1500);
         }
-      }, 150); // Adjust the typing speed
+      }, 150);
     },
   },
 };
@@ -55,6 +67,13 @@ export default {
             <span class="image-text">Premier League</span>
           </a>
         </li>
+        <li v-if="loggedIn" class="upload-article">
+          <router-link to="/upload-page">
+            <img src="../assets/Images/upload.png" alt="Image 1" style="width: 50px; height: auto;">
+            <span class="image-text" style="bottom: -45px;">Upload article</span>
+          </router-link>
+        </li>
+
 
         <li class="dropdown">
           <a href="#" class="dropbtn"><i class="bi bi-person-circle"></i></a>
@@ -66,8 +85,8 @@ export default {
         <li>
           <section class="search">
             <form action="search-results.html" method="get">
-              <input type="text" name="q" placeholder="Search Sports News" style="font-size: 25px;">
-              <button type="submit" style="font-size: 25px;"><i class="bi bi-search"></i>Search</button>
+              <input type="text" name="q" placeholder="Search Sports News" style="font-size: 20px;">
+              <button type="submit" style="font-size: 20px;"><i class="bi bi-search"></i>Search</button>
             </form>
           </section>
         </li>
@@ -123,7 +142,7 @@ header ul li:hover .image-text {
 
 header ul li:hover .premium-text {
   opacity: 1;
-  color: #b09604; /* Change this line to set the color when hovered */
+  color: #b09604;
 }
 
 header ul li:nth-child(5) .image-text {
@@ -168,13 +187,13 @@ nav {
   margin-left: -10px;
   margin-top: 25px;
   position: fixed;
-  top: -60px; /* Initially hide the navbar above the viewport */
+  top: -60px;
   width: 110%;
   background-color: #333;
   color: #fff;
   padding: 15px;
   text-align: center;
-  transition: top 0.3s; /* Add smooth transition for the appearing/disappearing effect */
+  transition: top 0.3s;
 }
 
 .premium-image {
@@ -238,7 +257,7 @@ nav ul li:nth-child(3) a:hover {
   display: inline-block;
   margin-left: auto;
   left: 46vw;
-  z-index: 1; /* Ensure the dropdown is above other elements */
+  z-index: 1;
   transform: scale(1.3);
 }
 
@@ -247,7 +266,7 @@ nav ul li:nth-child(3) a:hover {
   position: absolute;
   background-color: #f9f9f9;
   min-width: 80px;
-  z-index: 2; /* Ensure the dropdown content is above the dropdown button */
+  z-index: 2;
 }
 
 .dropbtn:hover {
@@ -256,10 +275,10 @@ nav ul li:nth-child(3) a:hover {
 
 .dropdown-content a {
   color: black;
-  padding: 8px 12px; /* Adjust the padding values as needed */
+  padding: 8px 12px;
   text-decoration: none;
   display: block;
-  font-size: 18px; /* Add or modify the font-size property as needed */
+  font-size: 18px;
 }
 
 .dropdown-content a:hover {
@@ -273,7 +292,7 @@ nav ul li:nth-child(3) a:hover {
 @media (max-width: 1540px) {
   .dropdown {
     position: sticky;
-    left: 63vw;
+    left: 65vw;
     margin-top: 2.4vw;
     transform: scale(1.3);
   }
@@ -301,6 +320,7 @@ nav ul li:nth-child(3) a:hover {
     text-align: center;
     margin-right: auto;
     margin-left: auto;
+    font-size: 16px;
   }
 
   .search input, .search button {
@@ -310,6 +330,10 @@ nav ul li:nth-child(3) a:hover {
 @media (max-width: 480px) {
   .feature {
     flex-basis: 100%;
+  }
+
+  .search {
+    font-size: 12px;
   }
 }
 

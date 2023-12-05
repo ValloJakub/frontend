@@ -107,7 +107,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ddd; /* Add background color if needed */
+  background-color: #ddd;
   padding: 10px;
 }
 
@@ -159,7 +159,7 @@ body {
   text-align: center;
   width: 30%;
   position: relative;
-  overflow: hidden; /* Added overflow to hide caption overflow */
+  overflow: hidden;
   margin: 0 auto;
 }
 
@@ -184,7 +184,7 @@ body {
 }
 
 .image-container:hover figure {
-  transform: scale(1.05);
+  transform: scale(1.15);
 }
 
 .col img {
@@ -218,7 +218,7 @@ body {
   box-sizing: border-box;
   transition: transform 0.3s, background 0.3s, color 0.3s;
   transform-origin: center bottom;
-  z-index: 2; /* Ensure the text stays on top */
+  z-index: 2;
 }
 
 .col:hover figure img {
@@ -226,8 +226,7 @@ body {
 }
 
 .col:hover figure figcaption {
-  transform: scaleY(1.3);
-  transform: scaleX(1.1);
+  transform: scale(1.15);
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
 }

@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import FriSportMainPage from "@/views/FriSportMainPage.vue";
+import FriSportMainPage from "@/views/MainPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import NhlPage from "@/views/NhlPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
+import UploadArticle from "@/views/UploadArticle.vue";
 const routes = [
   {
     path: '/',
@@ -23,6 +24,11 @@ const routes = [
     path: '/register-page',
     name: 'RegisterPage',
     component: RegisterPage
+  },
+  {
+    path: '/upload-page',
+    name: 'UploadArticle',
+    component: UploadArticle
   },
 ]
 

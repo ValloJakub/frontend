@@ -1,4 +1,6 @@
 <script>
+import axios from 'axios';
+
 export default {
   name: "RegisterPage",
   data() {
@@ -7,11 +9,12 @@ export default {
       password: "",
       confirmPassword: "",
       number: "",
+      errors: {},
     };
   },
   computed: {
     emailPlaceholder() {
-      return this.email ? '' : 'name@example.com';
+      return this.email ? '' : 'abc@gmail.com';
     },
     passwordPlaceholder() {
       return this.password ? '' : 'Password';
@@ -23,6 +26,61 @@ export default {
       return this.number ? '' : 'Phone Number';
     },
   },
+  watch: {
+    email: 'validateEmail',
+    password: 'validatePassword',
+    confirmPassword: 'validatePassword',
+  },
+  methods: {
+    handleSubmit() {
+      if (this.validateForm()) {
+        const userData = {
+          email: this.email,
+          password: this.password,
+          password_confirmation: this.confirmPassword,
+          phone_number: this.number,
+        };
+
+        axios.post('http://127.0.0.1:8000/api/register/', userData)
+            .then(response => {
+              console.log('User registered successfully:', response.data);
+
+              // Presmeruj na login stránku po registrácii
+              this.$router.push('/login-page');
+            })
+            .catch(error => {
+              console.error('Error registering user:', error);
+              if (error.response && error.response.data) {
+                this.errors = error.response.data;
+              }
+            });
+      }
+    },
+    validateEmail() {
+      this.errors.email = this.email ? '' : 'Email is required.';
+    },
+    validatePassword() {
+      this.errors.password = this.password ? '' : 'Password is required.';
+
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+      if (!passwordRegex.test(this.password)) {
+        this.errors.passwordStrength = 'Password must be at least 8 characters long and include at least one letter and one number.';
+      } else {
+        this.errors.passwordStrength = '';
+      }
+
+      this.errors.confirmPassword = this.password === this.confirmPassword ? '' : 'Passwords do not match.';
+    },
+    validateForm() {
+      this.validateEmail();
+      this.validatePassword();
+
+      const numberRegex = /^\d*$/; // Iba čísla
+      this.errors.number = numberRegex.test(this.number) ? '' : 'Phone Number must contain only numbers.';
+
+      return !Object.values(this.errors).some(error => error);
+    },
+  },
 };
 </script>
 
@@ -31,32 +89,56 @@ export default {
     <div class="modal-dialog" role="document">
       <div class="modal-content rounded-4 shadow">
         <div class="modal-header p-5 pb-4 border-bottom-0">
-          <h1 class="fw-bold mb-0 fs-2" style="color: white; font-size: 36px">Sign up for free</h1>
+          <h1 class="fw-bold mb-0 fs-2" style="color: white; font-size: 40px">Sign up for free</h1>
         </div>
 
         <div class="modal-body p-5 pt-0">
-          <div class="text-body-secondary" style="font-size: 36px; margin-top: 10px;">
-            Create Account
+          <div class="text-body-secondary" style="font-size: 36px; margin-top: 10px; color: black">
+            Create your Account now!
           </div>
           <form @submit.prevent="handleSubmit">
-            <div class="form-floating mb-3">
-              <input v-model="email" type="email" class="form-control rounded-3" id="floatingInput" :placeholder="emailPlaceholder" style="font-size: 24px">
-              <label for="floatingInput" :class="{ 'active': email }" style="font-size: 16px">{{ email ? '' : 'name@example.com' }}</label>
+            <div class="form-group">
+              <label for="floatingInput" style="font-size: 20px; color: black; text-align: left; display: block;">Email</label>
+              <div class="form-floating mb-3" :class="{ 'has-error': errors.email }">
+                <input v-model="email" type="email" class="form-control rounded-3" id="floatingInput" :placeholder="emailPlaceholder" style="font-size: 24px">
+                <label for="floatingInput" :class="{ 'active': email }" style="font-size: 16px; color: lightslategrey">
+                  <i class="bi bi-envelope-open-fill"></i> {{ email ? '' : 'abc@gmail.com' }}
+                </label>
+              </div>
+              <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
             </div>
 
-            <div class="form-floating mb-3">
-              <input v-model="password" type="password" class="form-control rounded-3" id="floatingPassword" :placeholder="passwordPlaceholder" style="font-size: 24px">
-              <label for="floatingPassword" :class="{ 'active': password }" style="font-size: 16px">{{ password ? '' : 'Password' }}</label>
+            <div class="form-group">
+              <label for="floatingPassword" style="font-size: 20px; color: black; text-align: left; display: block;">Password</label>
+              <div class="form-floating mb-3" :class="{ 'has-error': errors.password || errors.passwordStrength }">
+                <input v-model="password" type="password" class="form-control rounded-3" id="floatingPassword" :placeholder="passwordPlaceholder" style="font-size: 24px">
+                <label for="floatingPassword" :class="{ 'active': password }" style="font-size: 16px; color: lightslategrey">
+                  <i class="bi bi-lock-fill"></i> {{ password ? '' : 'Password here' }}
+                </label>
+                <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
+                <div v-if="errors.passwordStrength" class="error-message">{{ errors.passwordStrength }}</div>
+              </div>
             </div>
 
-            <div class="form-floating mb-3">
-              <input v-model="confirmPassword" type="password" class="form-control rounded-3" id="floatingConfirmPassword" :placeholder="confirmPasswordPlaceholder" style="font-size: 24px">
-              <label for="floatingConfirmPassword" :class="{ 'active': confirmPassword }" style="font-size: 16px">{{ confirmPassword ? '' : 'Type Password Again' }}</label>
+            <div class="form-group">
+              <label for="floatingConfirmPassword" style="font-size: 20px; color: black; text-align: left; display: block;">Confirm Password</label>
+              <div class="form-floating mb-3" :class="{ 'has-error': errors.confirmPassword }">
+                <input v-model="confirmPassword" type="password" class="form-control rounded-3" id="floatingConfirmPassword" :placeholder="confirmPasswordPlaceholder" style="font-size: 24px">
+                <label for="floatingConfirmPassword" :class="{ 'active': confirmPassword }" style="font-size: 16px; color: lightslategrey">
+                  <i class="bi bi-lock-fill"></i> {{ confirmPassword ? '' : 'Reenter your Password' }}
+                </label>
+                <div v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</div>
+              </div>
             </div>
 
-            <div class="form-floating mb-3">
-              <input v-model="number" type="text" inputmode="numeric" class="form-control rounded-3" id="floatingNumber" :placeholder="numberPlaceholder" style="font-size: 24px; padding-right: 0;">
-              <label for="floatingNumber" :class="{ 'active': number }" style="font-size: 16px">{{ number ? '' : 'Phone Number' }}</label>
+            <div class="form-group">
+              <label for="floatingNumber" style="font-size: 20px; color: black; text-align: left; display: block;">Phone Number</label>
+              <div class="form-floating mb-3">
+                <input v-model="number" type="text" inputmode="numeric" pattern="[0-9]*" class="form-control rounded-3" id="floatingNumber" :placeholder="numberPlaceholder" style="font-size: 24px; padding-right: 0;">
+                <label for="floatingNumber" :class="{ 'active': number }" style="font-size: 16px; color: lightslategrey">
+                  <i class="bi bi-telephone-inbound-fill"></i> {{ number ? '' : 'Phone Number (optional)' }}
+                </label>
+              </div>
             </div>
 
             <button type="submit" class="sign-up" style="font-size: 30px; padding: 10px 20px;">Create Account</button>
@@ -180,5 +262,15 @@ body {
 
 .modal-body {
   padding: 1rem 2rem;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.has-error input {
+  border-color: red !important;
 }
 </style>

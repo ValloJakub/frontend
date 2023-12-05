@@ -1,23 +1,23 @@
-<script>
-export default {
-  name: "PageFooter",
-  data() {
-    return {
-      lastUpdated: null
-    };
-  },
-  mounted() {
-    this.setLastUpdated();
-  },
-  methods: {
-    setLastUpdated() {
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleString();
-      this.lastUpdated = formattedDate;
-    }
-  }
-}
-</script>
+<!--/*<script>-->
+<!--export default {-->
+<!--  name: "PageFooter",-->
+<!--  data() {-->
+<!--    return {-->
+<!--      lastUpdated: null-->
+<!--    };-->
+<!--  },-->
+<!--  mounted() {-->
+<!--    this.setLastUpdated();-->
+<!--  },-->
+<!--  methods: {-->
+<!--    setLastUpdated() {-->
+<!--      const currentDate = new Date();-->
+<!--      const formattedDate = currentDate.toLocaleString();-->
+<!--      this.lastUpdated = formattedDate;-->
+<!--    }-->
+<!--  }-->
+<!--}-->
+<!--</script>*/-->
 
 <template>
   <footer class="footer" style="background-color: #333; color: #fff; padding: 20px; text-align: center;">
@@ -47,10 +47,7 @@ export default {
     </div>
 
     <div class="copyright">
-      <span style="font-size: 18px;">| 2023 FRIsport. All rights reserved | </span>
-    </div>
-    <div class="last-updated">
-       Last Updated: {{ lastUpdated }}
+      <span style="font-size: 18px;">  2023 FRIsport. All rights reserved  </span>
     </div>
   </footer>
 </template>

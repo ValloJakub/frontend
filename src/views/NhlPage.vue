@@ -9,7 +9,15 @@ export default {
       loading: false,
       articles: [],
       currentPage: 1,
+      pageSize: 6, // Number of articles per page
     };
+  },
+  computed: {
+    pagedArticles() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.articles.slice(start, end);
+    },
   },
   mounted() {
     this.startScalingAnimation();
@@ -28,7 +36,6 @@ export default {
         console.log('Response:', response.data);
 
         if (response.data) {
-          // Reverse the order of articles before assigning to this.articles
           this.articles = response.data.reverse();
         } else {
           console.error('Error fetching articles: Response data or results are null or undefined');
@@ -39,11 +46,8 @@ export default {
         this.loading = false;
       }
     },
-    loadMore() {
-      if (this.articles.length) {
-        this.currentPage++;
-        this.fetchArticles();
-      }
+    changePage(pageNumber) {
+      this.currentPage = pageNumber;
     },
   },
 };
@@ -51,7 +55,6 @@ export default {
 
 <template>
   <main>
-
     <div class="scaled-image left" :class="{ 'scaling': isScaling }">
       <a href="your_destination_url">
         <img src="../assets/Images/lidl.jpg" alt="Image 5">
@@ -60,8 +63,8 @@ export default {
 
     <div v-if="loading" class="loading">Loading...</div>
 
-    <div v-if="articles && articles.length" class="nhl-articles">
-      <div v-for="article in articles" :key="article.id" class="news-box">
+    <div v-if="pagedArticles && pagedArticles.length" class="nhl-articles">
+      <div v-for="article in pagedArticles" :key="article.id" class="news-box">
         <article class="news-item side-item cat-item">
           <a :href="article.url" class="news-item-image">
             <picture>
@@ -78,26 +81,26 @@ export default {
             </picture>
           </a>
           <div class="news-item-data">
-            <div class="news-item-category-wrapper">
-              <!-- Add category if available -->
-            </div>
             <h2 class="news-item-title">
               <a :href="article.url">{{ article.title }}</a>
             </h2>
-            <p class="news-item-description">{{ article.text }}</p>
+            <p class="news-item-description">{{ article.description }}</p>
           </div>
         </article>
-      </div>
-
-      <div v-if="articles.length" @click="loadMore" style="cursor: pointer; color: blue;">
-        Load more...
       </div>
     </div>
 
     <div aria-label="Page navigation example" class="pagination-container">
       <ul class="pagination">
-        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        <li class="page-item" :class="{ 'disabled': currentPage === 1 }">
+          <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">Previous</a>
+        </li>
+        <li v-for="page in Math.ceil(articles.length / pageSize)" :key="page" class="page-item" :class="{ 'active': currentPage === page }">
+          <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+        </li>
+        <li class="page-item" :class="{ 'disabled': currentPage === Math.ceil(articles.length / pageSize) }">
+          <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">Next</a>
+        </li>
       </ul>
     </div>
 
@@ -106,7 +109,6 @@ export default {
         <img src="../assets/Images/lidl.jpg" alt="Image 5">
       </a>
     </div>
-
   </main>
 </template>
 
@@ -115,7 +117,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ddd; /* Add background color if needed */
+  background-color: #ddd;
   padding: 10px;
 }
 
@@ -154,14 +156,14 @@ body {
 .news-box {
   border: 2px solid #ddd;
   border-radius: 8px;
-  margin: 20px auto; /* Center the box horizontally with 'auto' margin */
-  width: 25%; /* Adjust the width as needed */
-  overflow: hidden; /* Ensure the content doesn't overflow */
-  transition: transform 0.3s ease; /* Add a transition for smooth scaling */
+  margin: 20px auto;
+  width: 25%;
+  overflow: hidden;
+  transition: transform 0.3s ease;
 }
 
 .news-box:hover {
-  transform: scale(1.05); /* Scale up on hover */
+  transform: scale(1.05);
 }
 
 .news-item {
@@ -175,8 +177,8 @@ body {
 }
 
 .news-item-image img {
-  width: 100%; /* Use 100% to fill the container */
-  height: auto; /* Maintain aspect ratio */
+  width: 100%;
+  height: auto;
   display: block;
 }
 
@@ -201,7 +203,7 @@ body {
 .news-item-title {
   margin: 10px 0;
   font-size: 1.2em;
-  max-width: 100%; /* Adjust as needed */
+  max-width: 100%;
   text-align: center;
 }
 
@@ -209,8 +211,8 @@ body {
   font-size: 1em;
   line-height: 1.4;
   text-align: center;
-  max-width: 100%; /* Adjust as needed */
-  margin: 0 auto; /* Center the text */
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .content-container {
