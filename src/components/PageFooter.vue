@@ -1,24 +1,3 @@
-<!--/*<script>-->
-<!--export default {-->
-<!--  name: "PageFooter",-->
-<!--  data() {-->
-<!--    return {-->
-<!--      lastUpdated: null-->
-<!--    };-->
-<!--  },-->
-<!--  mounted() {-->
-<!--    this.setLastUpdated();-->
-<!--  },-->
-<!--  methods: {-->
-<!--    setLastUpdated() {-->
-<!--      const currentDate = new Date();-->
-<!--      const formattedDate = currentDate.toLocaleString();-->
-<!--      this.lastUpdated = formattedDate;-->
-<!--    }-->
-<!--  }-->
-<!--}-->
-<!--</script>*/-->
-
 <template>
   <footer class="footer" style="background-color: #333; color: #fff; padding: 20px; text-align: center;">
 

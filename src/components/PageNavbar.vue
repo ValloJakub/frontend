@@ -2,20 +2,10 @@
 export default {
   name: "PageNavbar",
 
-  data() {
-    return {
-      loggedIn: false, // Nie je prihlásený
-    };
-  },
-
   mounted() {
-    // Check user authentication status here and update the 'loggedIn' variable accordingly
-    // Example: You might use a Vuex store or another method to manage user authentication
-    // For simplicity, I'll set it to true in the example.
-    this.loggedIn = true;
-
     this.animateSearchPlaceholder();
   },
+
   methods: {
     animateSearchPlaceholder() {
       const searchInput = document.querySelector('.search input');
@@ -67,14 +57,12 @@ export default {
             <span class="image-text">Premier League</span>
           </a>
         </li>
-        <li v-if="loggedIn" class="upload-article">
+        <li>
           <router-link to="/upload-page">
-            <img src="../assets/Images/upload.png" alt="Image 1" style="width: 50px; height: auto;">
-            <span class="image-text" style="bottom: -45px;">Upload article</span>
+            <img src="../assets/Images/upload.png" alt="Image 1" style="width: 40px; height: auto;">
+            <span class="image-text">Upload article</span>
           </router-link>
         </li>
-
-
         <li class="dropdown">
           <a href="#" class="dropbtn"><i class="bi bi-person-circle"></i></a>
           <div class="dropdown-content">
@@ -129,6 +117,10 @@ header ul li:hover .image-text {
   transition: opacity 0.3s;
 }
 
+.upload-article {
+  left: 17vw;
+}
+
 .premium-text {
   position: absolute;
   bottom: -15px;
@@ -148,6 +140,15 @@ header ul li:hover .premium-text {
 header ul li:nth-child(5) .image-text {
   bottom: -40px;
   right: -26px;
+}
+
+header ul li:nth-child(6) .image-text {
+  bottom: -40px;
+  right: -26px;
+}
+
+header ul li:nth-child(6) {
+  left: 32vw;
 }
 
 body {
@@ -289,6 +290,17 @@ nav ul li:nth-child(3) a:hover {
   display: block;
 }
 
+@media (max-width: 1980px) {
+  header ul li:nth-child(6) .image-text {
+    bottom: -40px;
+    right: -26px;
+  }
+
+  header ul li:nth-child(6) {
+    left: 46vw;
+  }
+}
+
 @media (max-width: 1540px) {
   .dropdown {
     position: sticky;
@@ -305,8 +317,17 @@ nav ul li:nth-child(3) a:hover {
   .search input, .search button {
     font-size: 16px;
   }
+
+  header ul li:nth-child(6) {
+    left: 32vw;
+  }
 }
 
+@media (max-width: 1360px) {
+  header ul li:nth-child(6) {
+    left: 28vw;
+  }
+}
 
 @media (max-width: 768px) {
   nav {

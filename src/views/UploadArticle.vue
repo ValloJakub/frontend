@@ -6,9 +6,10 @@ export default {
   data() {
     return {
       title: "",
+      specification: "",
       description: "",
       image: null,
-      error: null
+      error: null,
     };
   },
   methods: {
@@ -23,12 +24,14 @@ export default {
       this.image = file;
       this.error = null;
     },
-    removeImage() {
-      this.image = null;
-    },
     handleSubmit() {
       if (this.title.length > 255) {
         this.error = "Title cannot be longer than 255 characters.";
+        return;
+      }
+
+      if (this.specification.length === 0 || !["NHL", "PML", "F1", "NBA"].includes(this.specification)) {
+        this.error = "Invalid specification!";
         return;
       }
 
@@ -37,41 +40,41 @@ export default {
         return;
       }
 
-      // Prepare FormData to send files
+      // Pripraví dáta na odoslanie
       const formData = new FormData();
+      formData.append('specification', this.specification);
       formData.append('title', this.title);
       formData.append('description', this.description);
       formData.append('image', this.image);
 
-      // Make an HTTP POST request to your Django Rest Framework endpoint
+      // Vytvorí požiadavku HTTP
       axios.post('http://127.0.0.1:8000/api/articles/', formData)
           .then(response => {
-            // Handle successful response
+            // Úspešná odpoveď
             console.log('Response from DRF:', response.data);
 
             // Presmeruj na hlavnú stránku
-            this.$router.push('/nhl-page');
+            this.$router.push('/');
 
-            // Clear the form after successful submission
+            // Vyčisti po úspešnom príspevku
             this.title = "";
             this.description = "";
             this.image = null;
+            this.specification = "";
 
-            // Reset error
+            // Vyčisti error
             this.error = null;
           })
           .catch(error => {
-            // Handle error
+            // Spracuj error
             console.error('Error sending data to DRF:', error);
 
-            // Set error message
             this.error = "Error submitting data. Please try again.";
           });
     }
   }
 }
 </script>
-
 
 <template>
   <div class="upload-video-body" tabindex="-1" role="dialog" id="modalUploadVideo">
@@ -95,6 +98,15 @@ export default {
                 <input v-model="title" type="text" class="form-control rounded-3" id="titleInput" :placeholder="titlePlaceholder" style="font-size: 24px; text-align: left; display: block;">
                 <label for="titleInput" :class="{ 'active': title }" style="font-size: 16px; color: lightslategrey; text-align: left;"><i class="bi bi-file-text"></i>
                   {{ title ? '' : 'Add a title to your article' }}</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="specificationInput" style="font-size: 22px; color: black; text-align: left; display: block;">Specification</label>
+              <div class="form-floating mb-3">
+                <input v-model="specification" type="text" class="form-control rounded-3" id="specificationInput" :placeholder="specificationPlaceholder" style="font-size: 24px; text-align: left; display: block;">
+                <label for="specificationInput" :class="{ 'active': specification }" style="font-size: 16px; color: lightslategrey; text-align: left;"><i class="bi bi-file-text"></i>
+                  {{ specification ? '' : 'Add a specification to your article [NHL/PML/F1,NBA]' }}</label>
               </div>
             </div>
 

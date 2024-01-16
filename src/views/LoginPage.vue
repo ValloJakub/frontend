@@ -84,7 +84,6 @@ export default {
             <div class="text-body-secondary" style="font-size: 28px; margin-top: 10px;">
               By clicking Sign in, you agree to the terms of use
             </div>
-            <hr class="my-4">
             <h2 class="fs-5 fw-bold mb-3" style="font-size: 36px; color: white">Or use a third-party</h2>
             <div class="d-flex flex-column">
               <button class="w-100 py-2 mb-2 btn btn-outline-secondary rounded-3 text-center" type="submit">
