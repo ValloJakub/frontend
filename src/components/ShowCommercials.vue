@@ -51,7 +51,7 @@ export default {
   }
 
   &.scaling {
-    transform: scale(1.10);
+    transform: scale(1.05);
   }
 
   &.left {
