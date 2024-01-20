@@ -15,6 +15,13 @@ export default {
       editedSpecification: "",
       editedDescription: "",
       editedImage: null,
+
+      comments: [],
+      showCommentsModal: false,
+      newCommentContent: "",
+      selectedArticleId: null,
+
+      discussionMode: false,
     };
   },
   mounted() {
@@ -102,6 +109,32 @@ export default {
       this.fetchNhlArticles();
     },
 
+    showDiscussion(articleId) {
+      this.discussionMode = true;
+      this.selectedArticleId = articleId;
+      this.getCommentsForArticle(articleId);
+    },
+
+    cancelDiscussion() {
+      this.discussionMode = false;
+    },
+
+    async getCommentsForArticle(selectedArticleId) {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/api/comments/?post=${selectedArticleId}`);
+        const filteredComments = response.data.filter(comment => comment.article === selectedArticleId);
+
+        if (filteredComments.length > 0) {
+          this.comments = filteredComments.reverse();
+        } else {
+          this.comments = [];
+          console.log('No comments for this article.');
+        }
+      } catch (error) {
+        console.error('Error getting comments for article:', error);
+      }
+    },
+
     editArticle(articleId) {
       const articleToEdit = this.nhlArticles.find(article => article.id === articleId);
 
@@ -115,8 +148,45 @@ export default {
     },
 
     formatTimestamp(timestamp) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
       return new Date(timestamp).toLocaleString(undefined, options);
+    },
+
+    openComments(articleId) {
+      console.log('Opening comments modal');
+      this.showCommentsModal = true;
+      this.selectedArticleId = articleId;
+      console.log('Selected Article ID:', this.selectedArticleId);
+    },
+
+    cancelAddComment() {
+      this.showCommentsModal = false;
+      this.newCommentContent = "";
+    },
+
+    async addComment() {
+      if (this.newCommentContent.trim() === "") {
+        console.error("Invalid comment content. Please enter a comment.");
+        return;
+      }
+      // Pripraví dáta na odoslanie
+      const formData = new FormData();
+
+      formData.append('content', this.newCommentContent);
+      formData.append('created_at', new Date().toISOString());
+      formData.append('author', this.author = 1);
+      formData.append('article', this.selectedArticleId);
+
+      axios.post(`http://127.0.0.1:8000/api/comments/`, formData)
+          .then(response => {
+            console.log("Comment added successfully:", response.data);
+            this.getCommentsForArticle();
+
+            this.newCommentContent = "";
+            this.selectedArticleId = null;
+
+            this.cancelAddComment();
+          })
     },
   },
 };
@@ -148,6 +218,15 @@ export default {
             <p class="news-item-timestamp" style="font-size: 11px">
               Created: {{ formatTimestamp(article.created_at) }}
             </p>
+
+            <div class="comments-content" style="font-size: 11px">
+              <button @click="showDiscussion(article.id)" style="font-size: 14px;" class="discussion-button">
+                <i class="bi bi-chat-dots"></i> Enter Discussion
+              </button>
+              <button @click="openComments(article.id)" style="font-size: 14px;" class="comments-button">
+                <i class="bi bi-chat-dots"></i> Add comment
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -198,15 +277,134 @@ export default {
       </div>
     </div>
   </div>
+
+  <!-- Pridanie komentáru -->
+  <div v-if="showCommentsModal" class="add-comment-form">
+
+    <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
+      Express your opinion
+    </div>
+
+    <div class="form-group">
+      <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
+      <textarea v-model="newCommentContent" id="newCommentContent" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group" style="text-align: center; margin-top: 10px;">
+      <button @click="addComment" class="btn btn-primary">Add Comment</button>
+      <button @click="cancelAddComment" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Zobrazenie komentárov v diskusii -->
+  <div v-if="discussionMode" class="discussion-form">
+    <h3>Discussion</h3>
+
+    <div v-if="comments.length > 0">
+      <!-- Vypísať komentáre, ak sú k dispozícii -->
+      <div v-for="comment in comments" :key="comment.id" class="comment-container">
+        <!-- Zobrazenie komentára -->
+        <div class="comment">
+          <div class="comment-header">
+            <!--              <span class="comment-author">Author: {{ comment.author.username }}</span>-->
+            <span class="comment-author">Author:</span>-
+
+            <span class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
+          </div>
+          <div class="comment-content">{{ comment.content }}</div>
+          <div> ---------------------------------------------------------------------------- </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else>
+      <!-- ak nie sú k dispozícii žiadne komentáre -->
+      <p>No comments have been added yet.</p>
+    </div>
+
+    <div class="form-group" style="text-align: center; margin-top: 10px;">
+      <button @click="cancelDiscussion" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
+
+.comments-button:hover {
+  transform: scale(1.05);
+}
+
+.comments-button {
+  transition: transform 0.2s ease;
+}
+
+.discussion-button:hover {
+  transform: scale(1.05);
+}
+
+.discussion-button {
+  transition: transform 0.2s ease;
+}
+
 .edit-form {
   position: fixed;
   top: 50%;
   left: 50%;
   width: 500px;
   height: 550px;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  max-width: 600px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  z-index: 999;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.discussion-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 80vw;
+  height: 80vh;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  max-width: 600px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  z-index: 999;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+  overflow-y: auto;
+}
+
+.edit-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 500px;
+  height: 550px;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  max-width: 600px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  z-index: 999;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.add-comment-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 500px;
+  height: 400px;
   transform: translate(-50%, -50%);
   background-color: white;
   padding: 20px;
