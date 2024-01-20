@@ -24,6 +24,11 @@ export default {
       this.image = file;
       this.error = null;
     },
+
+    closeWindow() {
+      this.$router.push('/');
+    },
+
     handleSubmit() {
       if (this.title.length > 100) {
         this.error = "Title is too long.";
@@ -87,7 +92,7 @@ export default {
 </script>
 
 <template>
-  <div class="upload-article-body" tabindex="-1" role="dialog" id="modalUploadArticle">
+  <div class="upload-article-window">
     <div class="modal-dialog" role="document">
       <div class="modal-content rounded-4 shadow">
         <div class="modal-header p-5 pb-4 border-bottom-0">
@@ -147,6 +152,8 @@ export default {
             </div>
 
             <button type="submit" class="upload-article-btn" style="font-size: 30px; padding: 10px 20px;">Upload</button>
+            <button type="button" class="close-btn" @click="closeWindow" style="font-size: 30px; padding: 10px 20px;">Close</button>
+
             <hr class="my-4">
           </form>
         </div>
@@ -156,7 +163,32 @@ export default {
 </template>
 
 <style scoped lang="scss">
+.upload-article-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 255);
+  width: 80vw;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+  margin-left: 10px;
+  border-width: 3px;
+  transition: background-color 0.3s, color 0.3s, transform 0.3s;
+}
+
+.close-btn:hover {
+  transform: scale(1.1);
+}
+
 .upload-article-btn {
+  transition: background-color 0.3s, color 0.3s, transform 0.3s;
+
   background-color: transparent;
   border-width: 3px;
   color: black;

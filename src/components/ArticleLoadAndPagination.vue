@@ -3,6 +3,7 @@ import axios from "axios";
 
 export default {
   name: "ArticleLoadAndPagination",
+
   data() {
     return {
       loading: false,
@@ -22,10 +23,14 @@ export default {
       selectedArticleId: null,
 
       discussionMode: false,
+
+      editingComment: null,
+      editedCommentContent: "",
     };
   },
 
   computed: {
+    // výpočty
     totalPages() {
       return Math.ceil(this.articles.length / this.pageSize);
     },
@@ -37,10 +42,12 @@ export default {
   },
 
   mounted() {
+    // životný cyklus komponentu
     this.fetchArticles();
   },
 
   methods: {
+    // Metódy pre získanie článkov
     async fetchArticles() {
       this.loading = true;
       try {
@@ -59,6 +66,21 @@ export default {
       }
     },
 
+    confirmRemoveArticle(articleId) {
+      const isConfirmed = window.confirm("Do you really want to delete this article?");
+      if (isConfirmed) {
+        axios.delete(`http://127.0.0.1:8000/api/articles/${articleId}/`)
+            .then(() => {
+              this.articles = this.articles.filter(article => article.id !== articleId);
+            })
+            .catch(error => {
+              console.error('\n' + 'Error deleting article', error);
+            });
+      }
+      this.fetchArticles();
+    },
+
+    // Metódy pre úpravu článkov
     async saveEditedArticle() {
       if (this.editingArticle) {
         if (
@@ -77,8 +99,6 @@ export default {
         );
 
         if (editedArticleIndex !== -1) {
-
-          // Pripraví dáta na odoslanie
           const formData = new FormData();
           formData.append('specification', this.editedSpecification);
           formData.append('title', this.editedTitle);
@@ -86,8 +106,7 @@ export default {
           formData.append('image', this.editedImage);
 
           try {
-            const response = await axios.put(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
-
+            const response = await axios.patch(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
             this.articles[editedArticleIndex] = response.data;
 
             this.cancelEdit();
@@ -111,30 +130,7 @@ export default {
       this.editedImage = null;
     },
 
-    changePage(pageNumber) {
-      const totalPages = Math.ceil(this.articles.length / this.pageSize);
-
-      if (pageNumber >= 1 && pageNumber <= totalPages) {
-        this.currentPage = pageNumber;
-      }
-    },
-
-    confirmRemoveArticle(articleId) {
-      const isConfirmed = window.confirm("Do you really want to delete this article?");
-      if (isConfirmed) {
-        // Zavolá serverový endpoint na odstránenie článku
-        axios.delete(`http://127.0.0.1:8000/api/articles/${articleId}/`)
-            .then(() => {
-              // Aktualizuje lokálne dáta na odstránenie už odstráneného článku
-              this.articles = this.articles.filter(article => article.id !== articleId);
-            })
-            .catch(error => {
-              console.error('\n' + 'Error deleting article', error);
-            });
-      }
-      this.fetchArticles();
-    },
-
+    // Metódy pre diskusiu a komentáre
     showDiscussion(articleId) {
       this.discussionMode = true;
       this.selectedArticleId = articleId;
@@ -161,23 +157,58 @@ export default {
       }
     },
 
-    editArticle(articleId) {
-      const articleToEdit = this.articles.find(article => article.id === articleId);
+    // Metódy pre úpravu komentárov
+    editComment(commentId) {
+      this.editingComment = this.comments.find(comment => comment.id === commentId);
+    },
 
-      if (articleToEdit) {
-        this.editingArticle = articleToEdit;
-        this.editedTitle = articleToEdit.title;
-        this.editedSpecification = articleToEdit.specification;
-        this.editedDescription = articleToEdit.description;
-        this.editedImage = articleToEdit.image;
+    async deleteComment(comment) {
+      const isConfirmed = window.confirm("Do you really want to delete this comment?");
+
+      if (isConfirmed) {
+        try {
+          await axios.delete(`http://127.0.0.1:8000/api/comments/${comment.id}/`);
+          this.comments = this.comments.filter(c => c.id !== comment.id);
+        } catch (error) {
+          console.error('Error deleting comment', error);
+        }
       }
     },
 
-    formatTimestamp(timestamp) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
-      return new Date(timestamp).toLocaleString(undefined, options);
+    cancelEditComment() {
+      this.editingComment = null;
+      this.editedCommentContent = "";
     },
 
+    async saveEditedComment() {
+      if (this.editingComment) {
+        if (this.editedCommentContent.trim() === "") {
+          console.error("Invalid comment content. Please enter a comment.");
+          return;
+        }
+
+        const editedCommentIndex = this.comments.findIndex(
+            (comment) => comment.id === this.editingComment.id
+        );
+
+        if (editedCommentIndex !== -1) {
+          const formData = new FormData();
+          formData.append('content', this.editedCommentContent);
+          formData.append('edited_at', new Date().toISOString());
+
+          try {
+            const response = await axios.patch(`http://127.0.0.1:8000/api/comments/${this.editingComment.id}/`, formData);
+            this.comments[editedCommentIndex] = response.data;
+
+            this.cancelEditComment();
+          } catch (error) {
+            console.error("Error updating comment:", error);
+          }
+        }
+      }
+    },
+
+    // Metódy pre správu komentárov
     openComments(articleId) {
       console.log('Opening comments modal');
       this.showCommentsModal = true;
@@ -195,9 +226,8 @@ export default {
         console.error("Invalid comment content. Please enter a comment.");
         return;
       }
-      // Pripraví dáta na odoslanie
-      const formData = new FormData();
 
+      const formData = new FormData();
       formData.append('content', this.newCommentContent);
       formData.append('created_at', new Date().toISOString());
       formData.append('author', this.author = 1);
@@ -208,11 +238,26 @@ export default {
             console.log("Comment added successfully:", response.data);
             this.getCommentsForArticle();
 
+            this.cancelAddComment();
+
             this.newCommentContent = "";
             this.selectedArticleId = null;
+          });
+    },
 
-            this.cancelAddComment();
-          })
+    // Metódy pre stránkovanie
+    changePage(pageNumber) {
+      const totalPages = Math.ceil(this.articles.length / this.pageSize);
+
+      if (pageNumber >= 1 && pageNumber <= totalPages) {
+        this.currentPage = pageNumber;
+      }
+    },
+
+    // Metóda pre formátovanie dátumu
+    formatTimestamp(timestamp) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
+      return new Date(timestamp).toLocaleString(undefined, options);
     },
   },
 };
@@ -276,7 +321,7 @@ export default {
       <option value="NBA">NBA</option>
     </select>
 
-    <!-- Úpravu článku -->
+    <!-- Úprava článku -->
     <div v-if="editingArticle" class="edit-form">
 
       <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
@@ -351,11 +396,32 @@ export default {
             <div class="comment-header">
               <!--              <span class="comment-author">Author: {{ comment.author.username }}</span>-->
               <span class="comment-author">Author:</span>-
+              <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
+              <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
+              <button @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+              <button @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
 
-              <span class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
             </div>
             <div class="comment-content">{{ comment.content }}</div>
             <div> ---------------------------------------------------------------------------- </div>
+          </div>
+
+          <!-- Úprava komentáru -->
+          <div v-if="editingComment" class="add-comment-form">
+
+            <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
+              Edit your Comment
+            </div>
+
+            <div class="form-group">
+              <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
+              <textarea v-model="editedCommentContent" id="newCommentContent" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group" style="text-align: center; margin-top: 10px;">
+              <button @click="saveEditedComment" class="btn btn-primary">Edit</button>
+              <button @click="cancelEditComment" class="btn btn-secondary">Cancel</button>
+            </div>
           </div>
         </div>
       </div>
@@ -388,6 +454,23 @@ export default {
 </template>
 
 <style scoped lang="scss">
+.edit-comment-btn,
+.delete-comment-btn {
+  font-size: 12px;
+  padding: 5px 8px;
+  margin-left: 5px;
+  transition: transform 0.2s ease;
+}
+
+.edit-comment-btn:hover {
+  transform: scale(1.05);
+  background-color: cornflowerblue;
+}
+.delete-comment-btn:hover {
+  transform: scale(1.05);
+  background-color: indianred;
+}
+
 .comments-button:hover {
   transform: scale(1.05);
 }
@@ -433,7 +516,7 @@ export default {
   max-width: 600px;
   border: 2px solid #ddd;
   border-radius: 8px;
-  z-index: 999;
+  z-index: 900;
   margin: 0 auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 

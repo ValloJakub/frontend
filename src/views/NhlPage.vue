@@ -10,18 +10,24 @@ export default {
     return {
       nhlArticles: [],
 
+      // Úprava článku
       editingArticle: null,
       editedTitle: "",
       editedSpecification: "",
       editedDescription: "",
       editedImage: null,
 
+      // Pridávanie komentu
       comments: [],
       showCommentsModal: false,
       newCommentContent: "",
       selectedArticleId: null,
 
       discussionMode: false,
+
+      // Úprava komentu
+      editingComment: null,
+      editedCommentContent: "",
     };
   },
   mounted() {
@@ -91,6 +97,61 @@ export default {
       this.editedSpecification = "";
       this.editedDescription = "";
       this.editedImage = null;
+    },
+
+    editComment(commentId) {
+      this.editingComment = this.comments.find(comment => comment.id === commentId);
+    },
+
+    async deleteComment(comment) {
+      const isConfirmed = window.confirm("Do you really want to delete this comment?");
+
+      if (isConfirmed) {
+        try {
+          await axios.delete(`http://127.0.0.1:8000/api/comments/${comment.id}/`);
+
+          // Aktualizuje lokálne dáta na odstránenie už odstráneného komentára
+          this.comments = this.comments.filter(c => c.id !== comment.id);
+        } catch (error) {
+          console.error('Error deleting comment', error);
+        }
+      }
+    },
+
+    cancelEditComment() {
+      this.editingComment = null;
+      this.editedCommentContent = "";
+    },
+
+    async saveEditedComment() {
+      if (this.editingComment) {
+        if (this.editedCommentContent.trim() === "") {
+          console.error("Invalid comment content. Please enter a comment.");
+          return;
+        }
+
+        const editedCommentIndex = this.comments.findIndex(
+            (comment) => comment.id === this.editingComment.id
+        );
+
+        if (editedCommentIndex !== -1) {
+          const formData = new FormData();
+          formData.append('content', this.editedCommentContent);
+          // Aktualizovaný čas úpravy
+          formData.append('edited_at', new Date().toISOString());
+
+          try {
+            // Put vyžaduje zadať všetky polia, patch nie
+            const response = await axios.patch(`http://127.0.0.1:8000/api/comments/${this.editingComment.id}/`,formData);
+
+            this.comments[editedCommentIndex] = response.data;
+
+            this.cancelEditComment();
+          } catch (error) {
+            console.error("Error updating comment:", error);
+          }
+        }
+      }
     },
 
     confirmRemoveArticle(articleId) {
@@ -232,7 +293,7 @@ export default {
       </div>
     </div>
 
-    <!-- Úpravu článku -->
+    <!-- Úprava článku -->
     <div v-if="editingArticle" class="edit-form">
 
       <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
@@ -308,11 +369,32 @@ export default {
           <div class="comment-header">
             <!--              <span class="comment-author">Author: {{ comment.author.username }}</span>-->
             <span class="comment-author">Author:</span>-
+            <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
+            <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
+            <button @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+            <button @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
 
-            <span class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
           </div>
           <div class="comment-content">{{ comment.content }}</div>
           <div> ---------------------------------------------------------------------------- </div>
+        </div>
+
+        <!-- Úprava komentáru -->
+        <div v-if="editingComment" class="add-comment-form">
+
+          <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
+            Edit your Comment
+          </div>
+
+          <div class="form-group">
+            <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
+            <textarea v-model="editedCommentContent" id="newCommentContent" class="form-control"></textarea>
+          </div>
+
+          <div class="form-group" style="text-align: center; margin-top: 10px;">
+            <button @click="saveEditedComment" class="btn btn-primary">Edit</button>
+            <button @click="cancelEditComment" class="btn btn-secondary">Cancel</button>
+          </div>
         </div>
       </div>
     </div>
@@ -326,9 +408,26 @@ export default {
       <button @click="cancelDiscussion" class="btn btn-secondary">Cancel</button>
     </div>
   </div>
+
 </template>
 
 <style scoped lang="scss">
+.edit-comment-btn,
+.delete-comment-btn {
+  font-size: 12px;
+  padding: 5px 8px;
+  margin-left: 5px;
+  transition: transform 0.2s ease;
+}
+
+.edit-comment-btn:hover {
+  transform: scale(1.05);
+  background-color: cornflowerblue;
+}
+.delete-comment-btn:hover {
+  transform: scale(1.05);
+  background-color: indianred;
+}
 
 .comments-button:hover {
   transform: scale(1.05);
