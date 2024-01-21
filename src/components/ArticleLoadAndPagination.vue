@@ -83,14 +83,14 @@ export default {
     // Metódy pre úpravu článkov
     async saveEditedArticle() {
       if (this.editingArticle) {
-        if (
-            this.editedTitle.length < 20 ||
-            this.editedTitle.length > 100 ||
-            !this.editedSpecification ||
-            !this.editedDescription.trim() ||
-            !this.editedImage
-        ) {
-          console.error('Invalid input. Please check your data.');
+        if (this.editedTitle.length < 20 || this.editedTitle.length > 100) {
+          alert('Invalid input. The title length cannot be shorter than 20 characters and longer than 100 characters!');
+          return;
+        } else if (!this.editedSpecification) {
+          alert('Invalid input. You have to choose specification!');
+          return;
+        } else if (!this.editedDescription.trim()) {
+          alert('Invalid input. Content cannot be empty!');
           return;
         }
 
@@ -103,17 +103,32 @@ export default {
           formData.append('specification', this.editedSpecification);
           formData.append('title', this.editedTitle);
           formData.append('description', this.editedDescription);
-          formData.append('image', this.editedImage);
 
-          try {
-            const response = await axios.patch(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
-            this.articles[editedArticleIndex] = response.data;
+          if (this.editedImage instanceof File) {
+            formData.append('image', this.editedImage);
 
-            this.cancelEdit();
-          } catch (error) {
-            console.error('Error updating article:', error);
+            try {
+              const response = await axios.patch(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
+              this.articles[editedArticleIndex] = response.data;
+
+              this.cancelEdit();
+            } catch (error) {
+              console.error('Error updating article:', error);
+            }
           }
         }
+      }
+    },
+
+    editArticle(articleId) {
+      const articleToEdit = this.articles.find(article => article.id === articleId);
+
+      if (articleToEdit) {
+        this.editingArticle = articleToEdit;
+        this.editedTitle = articleToEdit.title;
+        this.editedSpecification = articleToEdit.specification;
+        this.editedDescription = articleToEdit.description;
+        this.editedImage = articleToEdit.image;
       }
     },
 
@@ -476,6 +491,8 @@ export default {
 }
 
 .comments-button {
+  margin-top: 10px;
+  margin-left: 5px;
   transition: transform 0.2s ease;
 }
 
@@ -519,7 +536,6 @@ export default {
   z-index: 900;
   margin: 0 auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-
   overflow-y: auto;
 }
 
@@ -658,18 +674,25 @@ textarea {
 }
 
 .news-item-title {
-  margin: 10px 0;
-  font-size: 1.2em;
+  margin-top: 10px;
+  font-size: 18px;
   max-width: 100%;
   text-align: center;
+  word-wrap: break-word;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .news-item-description {
-  font-size: 1em;
+  margin-top: 10px;
+  font-size: 14px;
   line-height: 1.2;
   text-align: center;
   max-width: 100%;
-  margin: 0 auto;
+  margin-left: 15px;
+  margin-right: 15px;
+  word-wrap: break-word;
+  overflow: hidden;
 }
 
 .pagination-container {

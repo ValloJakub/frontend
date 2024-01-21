@@ -49,14 +49,14 @@ export default {
 
     async saveEditedArticle() {
       if (this.editingArticle) {
-        if (
-            this.editedTitle.length < 20 ||
-            this.editedTitle.length > 100 ||
-            !this.editedSpecification ||
-            !this.editedDescription.trim() ||
-            !this.editedImage
-        ) {
-          console.error('Invalid input. Please check your data.');
+        if (this.editedTitle.length < 20 || this.editedTitle.length > 100) {
+          alert('Invalid input. The title length cannot be shorter than 20 characters and longer than 100 characters!');
+          return;
+        } else if (!this.editedSpecification) {
+          alert('Invalid input. You have to choose specification!');
+          return;
+        } else if (!this.editedDescription.trim()) {
+          alert('Invalid input. Content cannot be empty!');
           return;
         }
 
@@ -435,6 +435,7 @@ export default {
 
 .comments-button {
   transition: transform 0.2s ease;
+  margin-left: 5px;
 }
 
 .discussion-button:hover {
@@ -570,11 +571,26 @@ textarea {
 }
 
 .title-content {
-  margin: 10px 0;
-  font-size: 1.2em;
+  font-size: 18px;
   max-width: 100%;
   text-align: center;
   font-weight: bold;
+  overflow-y: auto;
+  overflow: hidden;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+
+.content {
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: center;
+  max-width: 100%;
+  margin-left: 15px;
+  margin-right: 15px;
+  overflow-y: auto;
+  overflow: hidden;
 }
 
 .news-item {
@@ -610,21 +626,6 @@ textarea {
   font-weight: bold;
 }
 
-.news-item-title {
-  margin: 10px 0;
-  font-size: 1.2em;
-  max-width: 100%;
-  text-align: center;
-}
-
-.news-item-description {
-  font-size: 1em;
-  line-height: 1.2;
-  text-align: center;
-  max-width: 100%;
-  margin: 0 auto;
-}
-
 .article-box {
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -632,14 +633,6 @@ textarea {
   width: 30%;
   overflow: hidden;
   transition: transform 0.3s ease;
-}
-
-.title-content {
-  font-size: 18px;
-}
-
-.content {
-  font-size: 14px;
 }
 
 .specification {
