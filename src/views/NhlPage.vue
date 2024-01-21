@@ -30,6 +30,13 @@ export default {
       editedCommentContent: "",
     };
   },
+
+  computed: {
+    showButtons() {
+      return this.$store.state.user;
+    },
+  },
+
   mounted() {
     this.fetchNhlArticles();
   },
@@ -110,7 +117,7 @@ export default {
         try {
           await axios.delete(`http://127.0.0.1:8000/api/comments/${comment.id}/`);
 
-          // Aktualizuje lokálne dáta na odstránenie už odstráneného komentára
+          // Aktualizuje komenty - odstráni už odstránený koment
           this.comments = this.comments.filter(c => c.id !== comment.id);
         } catch (error) {
           console.error('Error deleting comment', error);
@@ -160,7 +167,7 @@ export default {
         // Zavolá serverový endpoint na odstránenie článku
         axios.delete(`http://127.0.0.1:8000/api/articles/${articleId}/`)
             .then(() => {
-              // Aktualizuje lokálne dáta na odstránenie už odstráneného článku
+              // Aktualizuje články - odstráni už odstránený článok
               this.nhlArticles = this.nhlArticles.filter(article => article.id !== articleId);
             })
             .catch(error => {
@@ -235,7 +242,7 @@ export default {
 
       formData.append('content', this.newCommentContent);
       formData.append('created_at', new Date().toISOString());
-      formData.append('author', this.author = 1);
+      formData.append('author', this.$store.state.user);
       formData.append('article', this.selectedArticleId);
 
       axios.post(`http://127.0.0.1:8000/api/comments/`, formData)
@@ -261,10 +268,10 @@ export default {
         <div v-for="article in nhlArticles" :key="article.id" class="article-box">
           <div class="article-content">
             <!-- Tlačidlá pre úpravu a odstránenie -->
-            <button @click="editArticle(article.id)" class="edit-article-btn">
+            <button v-if="showButtons" @click="editArticle(article.id)" class="edit-article-btn">
               <i class="bi bi-pencil-fill"></i>
             </button>
-            <button @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
+            <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
               <i class="bi bi-x-lg"></i>
             </button>
             <img :src="article.image" alt="Article Image" />
@@ -284,7 +291,7 @@ export default {
               <button @click="showDiscussion(article.id)" style="font-size: 14px;" class="discussion-button">
                 <i class="bi bi-chat-dots"></i> Enter Discussion
               </button>
-              <button @click="openComments(article.id)" style="font-size: 14px;" class="comments-button">
+              <button v-if="showButtons"  @click="openComments(article.id)" style="font-size: 14px;" class="comments-button">
                 <i class="bi bi-chat-dots"></i> Add comment
               </button>
             </div>
@@ -352,7 +359,7 @@ export default {
     </div>
 
     <div class="form-group" style="text-align: center; margin-top: 10px;">
-      <button @click="addComment" class="btn btn-primary">Add Comment</button>
+      <button v-if="showButtons" @click="addComment" class="btn btn-primary">Add Comment</button>
       <button @click="cancelAddComment" class="btn btn-secondary">Cancel</button>
     </div>
   </div>
@@ -367,13 +374,11 @@ export default {
         <!-- Zobrazenie komentára -->
         <div class="comment">
           <div class="comment-header">
-            <!--              <span class="comment-author">Author: {{ comment.author.username }}</span>-->
-            <span class="comment-author">Author:</span>-
+<!--            <span class="comment-author">Author:</span>- -->
             <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
             <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
-            <button @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
-            <button @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
-
+            <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+            <button v-if="showButtons" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
           </div>
           <div class="comment-content">{{ comment.content }}</div>
           <div> ---------------------------------------------------------------------------- </div>

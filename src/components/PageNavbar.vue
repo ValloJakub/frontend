@@ -6,7 +6,23 @@ export default {
     this.animateSearchPlaceholder();
   },
 
+  computed: {
+    isUserLoggedIn() {
+      return this.$store.getters.getUser !== null;
+    },
+
+    currentUserEmail() {
+      const user = this.$store.getters.getUser;
+      return user ? user.email : '';
+    },
+  },
+
   methods: {
+    logout() {
+      this.$store.commit('logout');
+      this.$router.push('/login-page');
+    },
+
     animateSearchPlaceholder() {
       const searchInput = document.querySelector('.search input');
       const placeholderText = "Search Sports News";
@@ -57,17 +73,21 @@ export default {
             <span class="image-text">Premier League</span>
           </a>
         </li>
-        <li>
+        <li  v-if="isUserLoggedIn" class="upload-article">
           <router-link to="/upload-page">
             <img src="../assets/Images/upload.png" alt="Image 1" style="width: 40px; height: auto;">
-            <span class="image-text">Upload article</span>
+            <span class="image-text" style="top: 40px">Upload article</span>
           </router-link>
+        </li>
+        <li v-if="isUserLoggedIn" class="author-name">
+          {{ currentUserEmail }}
         </li>
         <li class="dropdown">
           <a href="#" class="dropbtn"><i class="bi bi-person-circle"></i></a>
           <div class="dropdown-content">
             <router-link to="/login-page">Log in</router-link>
             <router-link to="/register-page">Register</router-link>
+            <a href="" v-if="isUserLoggedIn" @click="logout">Logout</a>
           </div>
         </li>
         <li>
@@ -90,11 +110,6 @@ header {
   padding: 10px;
 }
 
-header ul li {
-  position: relative;
-  list-style: none;
-}
-
 header ul li a {
   text-decoration: none;
   display: flex;
@@ -115,10 +130,6 @@ header ul li:hover .image-text {
   opacity: 0;
   color: white;
   transition: opacity 0.3s;
-}
-
-.upload-article {
-  left: 17vw;
 }
 
 .premium-text {
@@ -147,8 +158,8 @@ header ul li:nth-child(6) .image-text {
   right: -26px;
 }
 
-header ul li:nth-child(6) {
-  left: 32vw;
+header ul li:nth-child(5) .image-text {
+  text-align: center;
 }
 
 body {
@@ -260,6 +271,7 @@ nav ul li:nth-child(3) a:hover {
   left: 46vw;
   z-index: 1;
   transform: scale(1.3);
+  color: black;
 }
 
 .dropdown-content {
@@ -290,21 +302,10 @@ nav ul li:nth-child(3) a:hover {
   display: block;
 }
 
-@media (max-width: 1980px) {
-  header ul li:nth-child(6) .image-text {
-    bottom: -40px;
-    right: -26px;
-  }
-
-  header ul li:nth-child(6) {
-    left: 46vw;
-  }
-}
-
 @media (max-width: 1540px) {
   .dropdown {
     position: sticky;
-    left: 65vw;
+    left: 62vw;
     margin-top: 2.4vw;
     transform: scale(1.3);
   }
@@ -316,10 +317,6 @@ nav ul li:nth-child(3) a:hover {
 
   .search input, .search button {
     font-size: 16px;
-  }
-
-  header ul li:nth-child(6) {
-    left: 32vw;
   }
 }
 

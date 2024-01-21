@@ -30,6 +30,9 @@ export default {
             console.log('Login successful:', response.data);
             this.error = null;
 
+            this.$store.commit("setUser", response.data.user);
+            this.$store.commit("setToken", response.data.token);
+
             // Presmeruj na hlavnú stránku
             this.$router.push('/');
           })

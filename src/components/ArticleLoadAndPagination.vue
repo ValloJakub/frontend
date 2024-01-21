@@ -6,7 +6,6 @@ export default {
 
   data() {
     return {
-      loading: false,
       articles: [],
       currentPage: 1,
       pageSize: 6,
@@ -30,6 +29,10 @@ export default {
   },
 
   computed: {
+    showButtons() {
+      return this.$store.state.user;
+    },
+
     // výpočty
     totalPages() {
       return Math.ceil(this.articles.length / this.pageSize);
@@ -49,7 +52,6 @@ export default {
   methods: {
     // Metódy pre získanie článkov
     async fetchArticles() {
-      this.loading = true;
       try {
         const response = await axios.get('http://127.0.0.1:8000/api/articles/');
         console.log('Response:', response.data);
@@ -61,8 +63,6 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching articles:', error);
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -210,7 +210,6 @@ export default {
           const formData = new FormData();
           formData.append('content', this.editedCommentContent);
           formData.append('edited_at', new Date().toISOString());
-
           try {
             const response = await axios.patch(`http://127.0.0.1:8000/api/comments/${this.editingComment.id}/`, formData);
             this.comments[editedCommentIndex] = response.data;
@@ -245,8 +244,8 @@ export default {
       const formData = new FormData();
       formData.append('content', this.newCommentContent);
       formData.append('created_at', new Date().toISOString());
-      formData.append('author', this.author = 1);
       formData.append('article', this.selectedArticleId);
+      formData.append('author', this.$store.state.user.id);
 
       axios.post(`http://127.0.0.1:8000/api/comments/`, formData)
           .then(response => {
@@ -280,16 +279,14 @@ export default {
 
 <template>
   <div>
-    <div v-if="loading" class="loading">Loading...</div>
-
     <!-- Zobrazenie článkov -->
     <div v-if="!editingArticle && pagedArticles && pagedArticles.length" class="nhl-articles">
       <div v-for="article in pagedArticles" :key="article.id" class="news-box">
         <!-- Tlačidlá pre úpravu a odstránenie -->
-        <button @click="editArticle(article.id)" class="edit-article-btn">
+        <button v-if="showButtons" @click="editArticle(article.id)" class="edit-article-btn">
           <i class="bi bi-pencil-fill"></i>
         </button>
-        <button @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
+        <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
           <i class="bi bi-x-lg"></i>
         </button>
 
@@ -319,7 +316,7 @@ export default {
               <button @click="showDiscussion(article.id)" style="font-size: 14px;" class="comments-button">
                 <i class="bi bi-chat-dots"></i> Enter Discussion
               </button>
-              <button @click="openComments(article.id)" style="font-size: 14px;" class="comments-button">
+              <button v-if="showButtons"  @click="openComments(article.id)" style="font-size: 14px;" class="comments-button">
                 <i class="bi bi-chat-dots"></i> Add comment
               </button>
             </div>
@@ -394,7 +391,7 @@ export default {
       </div>
 
       <div class="form-group" style="text-align: center; margin-top: 10px;">
-        <button @click="addComment" class="btn btn-primary">Add Comment</button>
+        <button v-if="showButtons" @click="addComment" class="btn btn-primary">Add Comment</button>
         <button @click="cancelAddComment" class="btn btn-secondary">Cancel</button>
       </div>
     </div>
@@ -409,12 +406,11 @@ export default {
           <!-- Zobrazenie komentára -->
           <div class="comment">
             <div class="comment-header">
-              <!--              <span class="comment-author">Author: {{ comment.author.username }}</span>-->
-              <span class="comment-author">Author:</span>-
               <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
+              <!--              <div> Author: {{ article.author }}</div>-->
               <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
-              <button @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
-              <button @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
+              <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+              <button v-if="showButtons" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
 
             </div>
             <div class="comment-content">{{ comment.content }}</div>

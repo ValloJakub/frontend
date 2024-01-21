@@ -12,6 +12,7 @@ export default {
       error: null,
     };
   },
+
   methods: {
     handleImageUpload(event) {
       const file = event.target.files[0];
@@ -61,6 +62,7 @@ export default {
       formData.append('title', this.title);
       formData.append('description', this.description);
       formData.append('image', this.image);
+      // formData.append('author', this.$store.getters.getUser);
 
       // Vytvorí požiadavku HTTP
       axios.post('http://127.0.0.1:8000/api/articles/', formData)
