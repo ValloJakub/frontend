@@ -58,12 +58,29 @@ export default {
 
       // Pripraví dáta na odoslanie
       const formData = new FormData();
-      formData.append('specification', this.specification);
+      formData.append('category', this.specification);
       formData.append('title', this.title);
       formData.append('description', this.description);
-      formData.append('image', this.image);
       // formData.append('author', this.$store.getters.getUser);
 
+      if (this.image) {
+        // Konvertujeme obrázok na base64 a pridáme ho do formData
+        const reader = new FileReader();
+        reader.readAsDataURL(this.image);
+
+        reader.onload = (event) => {
+          formData.append('image', event.target.result);
+
+          // Po načítaní base64 reprezentácie, odoslanie dát na server
+          this.sendArticle(formData);
+        };
+      } else {
+        // Ak nie je obrázok, hneď odoslať dáta
+        this.sendArticle(formData);
+      }
+    },
+
+    sendArticle(formData) {
       // Vytvorí požiadavku HTTP
       axios.post('http://127.0.0.1:8000/api/articles/', formData)
           .then(response => {

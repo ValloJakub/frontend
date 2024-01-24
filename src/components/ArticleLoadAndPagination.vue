@@ -12,7 +12,7 @@ export default {
 
       editingArticle: null,
       editedTitle: "",
-      editedSpecification: "",
+      editedCategory: "",
       editedDescription: "",
       editedImage: null,
 
@@ -86,8 +86,8 @@ export default {
         if (this.editedTitle.length < 20 || this.editedTitle.length > 100) {
           alert('Invalid input. The title length cannot be shorter than 20 characters and longer than 100 characters!');
           return;
-        } else if (!this.editedSpecification) {
-          alert('Invalid input. You have to choose specification!');
+        } else if (!this.editedCategory) {
+          alert('Invalid input. You have to choose category!');
           return;
         } else if (!this.editedDescription.trim()) {
           alert('Invalid input. Content cannot be empty!');
@@ -100,21 +100,21 @@ export default {
 
         if (editedArticleIndex !== -1) {
           const formData = new FormData();
-          formData.append('specification', this.editedSpecification);
+          formData.append('category', this.editedCategory);
           formData.append('title', this.editedTitle);
           formData.append('description', this.editedDescription);
 
           if (this.editedImage instanceof File) {
             formData.append('image', this.editedImage);
+          }
 
-            try {
-              const response = await axios.patch(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
-              this.articles[editedArticleIndex] = response.data;
+          try {
+            const response = await axios.patch(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
+            this.articles[editedArticleIndex] = response.data;
 
-              this.cancelEdit();
-            } catch (error) {
-              console.error('Error updating article:', error);
-            }
+            this.cancelEdit();
+          } catch (error) {
+            console.error('Error updating article:', error);
           }
         }
       }
@@ -126,9 +126,9 @@ export default {
       if (articleToEdit) {
         this.editingArticle = articleToEdit;
         this.editedTitle = articleToEdit.title;
-        this.editedSpecification = articleToEdit.specification;
+        this.editedCategory = articleToEdit.category;
         this.editedDescription = articleToEdit.description;
-        this.editedImage = articleToEdit.image;
+        this.editedImage = null;
       }
     },
 
@@ -140,7 +140,7 @@ export default {
     cancelEdit() {
       this.editingArticle = null;
       this.editedTitle = "";
-      this.editedSpecification = "";
+      this.editedCategory = "";
       this.editedDescription = "";
       this.editedImage = null;
     },
@@ -305,7 +305,7 @@ export default {
           </a>
           <div class="news-item-data">
             <h2 class="news-item-title">
-              <p class="news-item-category">{{ article.specification }}</p>
+              <p class="news-item-category">{{ article.category }}</p>
               <a :href="article.url">{{ article.title }}</a>
             </h2>
             <p class="news-item-description">{{ article.description }}</p>
@@ -326,7 +326,7 @@ export default {
     </div>
 
     <select v-model="specification" class="form-control rounded-3" id="specificationInput">
-      <option value="" disabled selected>Select a specification</option>
+      <option value="" disabled selected>Select a category</option>
       <option value="NHL">NHL</option>
       <option value="PML">PML</option>
       <option value="F1">F1</option>
@@ -346,9 +346,9 @@ export default {
       </div>
 
       <div class="form-group">
-        <label for="editedSpecification" style="font-size: 20px; color: black; text-align: left; display: block;">Specification</label>
-        <select v-model="editedSpecification" class="form-control">
-          <option value="" disabled selected>Select a specification</option>
+        <label for="editedSpecification" style="font-size: 20px; color: black; text-align: left; display: block;">Category</label>
+        <select v-model="editedCategory" class="form-control">
+          <option value="" disabled selected>Select a category</option>
           <option value="NHL">NHL</option>
           <option value="PML">PML</option>
           <option value="F1">F1</option>
@@ -627,7 +627,7 @@ textarea {
   border: 2px solid #ddd;
   border-radius: 8px;
   margin: 20px auto;
-  width: 30%;
+  width: 30vw;
   overflow: hidden;
   transition: transform 0.3s ease;
 }

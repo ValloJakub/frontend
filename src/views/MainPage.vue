@@ -1,18 +1,15 @@
 <script>
 
-import ShowCommercials from "@/components/ShowCommercials.vue";
 import ArticleLoadAndPagination from "@/components/ArticleLoadAndPagination.vue";
 
 export default {
   name: "FriSportMainPage",
-  components: {ArticleLoadAndPagination, ShowCommercials}
+  components: {ArticleLoadAndPagination}
 };
 </script>
 
 <template>
   <body>
-
-  <ShowCommercials></ShowCommercials>
 
   <ArticleLoadAndPagination></ArticleLoadAndPagination>
 

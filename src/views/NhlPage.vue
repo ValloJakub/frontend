@@ -1,11 +1,10 @@
 
 <script>
-import ShowCommercials from "@/components/ShowCommercials.vue";
 import axios from "axios";
 
 export default {
   name: "NhlPage",
-  components: { ShowCommercials },
+
   data() {
     return {
       nhlArticles: [],
@@ -13,7 +12,7 @@ export default {
       // Úprava článku
       editingArticle: null,
       editedTitle: "",
-      editedSpecification: "",
+      editedCategory: "",
       editedDescription: "",
       editedImage: null,
 
@@ -40,12 +39,13 @@ export default {
   mounted() {
     this.fetchNhlArticles();
   },
+
   methods: {
     async fetchNhlArticles() {
       try {
         const response = await axios.get("http://127.0.0.1:8000/api/articles/", {
           params: {
-            specification: "NHL",
+            category: "NHL",
           },
         });
         this.nhlArticles = response.data.reverse();
@@ -59,8 +59,8 @@ export default {
         if (this.editedTitle.length < 20 || this.editedTitle.length > 100) {
           alert('Invalid input. The title length cannot be shorter than 20 characters and longer than 100 characters!');
           return;
-        } else if (!this.editedSpecification) {
-          alert('Invalid input. You have to choose specification!');
+        } else if (!this.editedCategory) {
+          alert('Invalid input. You have to choose category!');
           return;
         } else if (!this.editedDescription.trim()) {
           alert('Invalid input. Content cannot be empty!');
@@ -75,10 +75,13 @@ export default {
 
           // Pripraví dáta na odoslanie
           const formData = new FormData();
-          formData.append('specification', this.editedSpecification);
+          formData.append('category', this.editedCategory);
           formData.append('title', this.editedTitle);
           formData.append('description', this.editedDescription);
-          formData.append('image', this.editedImage);
+
+          if (this.editedImage instanceof File) {
+            formData.append('image', this.editedImage);
+          }
 
           try {
             const response = await axios.put(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
@@ -101,7 +104,7 @@ export default {
     cancelEdit() {
       this.editingArticle = null;
       this.editedTitle = "";
-      this.editedSpecification = "";
+      this.editedCategory = "";
       this.editedDescription = "";
       this.editedImage = null;
     },
@@ -209,7 +212,7 @@ export default {
       if (articleToEdit) {
         this.editingArticle = articleToEdit;
         this.editedTitle = articleToEdit.title;
-        this.editedSpecification = articleToEdit.specification;
+        this.editedCategory = articleToEdit.category;
         this.editedDescription = articleToEdit.description;
         this.editedImage = articleToEdit.image;
       }
@@ -261,7 +264,7 @@ export default {
 </script>
 
 <template>
-  <ShowCommercials></ShowCommercials>
+<!--  <ShowCommercials></ShowCommercials>-->
   <div>
     <div v-if="!editingArticle" class="nhl-articles">
       <div v-if="nhlArticles.length > 0">
@@ -275,7 +278,7 @@ export default {
               <i class="bi bi-x-lg"></i>
             </button>
             <img :src="article.image" alt="Article Image" />
-            <p class="specification">{{ article.specification }}</p>
+            <p class="specification">{{ article.category }}</p>
             <div class="title-content">
               <p>{{ article.title }}</p>
             </div>
@@ -313,9 +316,9 @@ export default {
       </div>
 
       <div class="form-group">
-        <label for="editedSpecification" style="font-size: 20px; color: black; text-align: left; display: block;">Specification</label>
-        <select v-model="editedSpecification" class="form-control">
-          <option value="" disabled selected>Select a specification</option>
+        <label for="editedSpecification" style="font-size: 20px; color: black; text-align: left; display: block;">Category</label>
+        <select v-model="editedCategory" class="form-control">
+          <option value="" disabled selected>Select a category</option>
           <option value="NHL">NHL</option>
           <option value="PML">PML</option>
           <option value="F1">F1</option>
