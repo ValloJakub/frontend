@@ -9,11 +9,9 @@ export default {
 </script>
 
 <template>
-  <body>
 
   <ArticleLoadAndPagination></ArticleLoadAndPagination>
 
-  </body>
 </template>
 
 <style scoped lang="scss">

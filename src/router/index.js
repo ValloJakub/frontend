@@ -4,6 +4,7 @@ import LoginPage from "@/views/LoginPage.vue";
 import NhlPage from "@/views/NhlPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
 import UploadArticle from "@/views/UploadArticle.vue";
+import PmlPage from "@/views/PmlPage.vue";
 const routes = [
   {
     path: '/',
@@ -19,6 +20,11 @@ const routes = [
     path: '/nhl-page',
     name: 'NhlPage',
     component: NhlPage
+  },
+  {
+    path: '/pml-page',
+    name: 'PmlPage',
+    component: PmlPage
   },
   {
     path: '/register-page',

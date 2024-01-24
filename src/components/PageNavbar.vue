@@ -2,10 +2,6 @@
 export default {
   name: "PageNavbar",
 
-  mounted() {
-    this.animateSearchPlaceholder();
-  },
-
   computed: {
     isUserLoggedIn() {
       return this.$store.getters.getUser !== null;
@@ -15,32 +11,19 @@ export default {
       const user = this.$store.getters.getUser;
       return user ? user.email : '';
     },
+
+    isUserAdmin() {
+      const user = this.$store.getters.getUser;
+      return user ? user.admin : false;
+    },
   },
 
   methods: {
     logout() {
       this.$store.commit('logout');
-      this.$router.push('/login-page');
+      this.$router.push('/');
     },
 
-    animateSearchPlaceholder() {
-      const searchInput = document.querySelector('.search input');
-      const placeholderText = "Search Sports News";
-      let index = 0;
-
-      setInterval(() => {
-        const currentPlaceholder = placeholderText.substring(0, index + 1);
-        searchInput.setAttribute('placeholder', currentPlaceholder);
-
-        index++;
-        if (index > placeholderText.length) {
-          index = 0;
-          setTimeout(() => {
-            searchInput.setAttribute('placeholder', '');
-          }, 1500);
-        }
-      }, 150);
-    },
   },
 };
 </script>
@@ -68,35 +51,27 @@ export default {
           </router-link>
         </li>
         <li>
-          <a href="#">
+          <router-link to="/pml-page">
             <img src="../assets/Images/pml.png" alt="Image 1" style="width: 80px; height: auto; margin-left: -15px">
             <span class="image-text">Premier League</span>
-          </a>
+          </router-link>
         </li>
         <li  v-if="isUserLoggedIn" class="upload-article">
           <router-link to="/upload-page">
-            <img src="../assets/Images/upload.png" alt="Image 1" style="width: 40px; height: auto;">
-            <span class="image-text" style="top: 40px">Upload article</span>
+            <div style="font-size: 25px">Upload Article</div>
+
           </router-link>
         </li>
-        <li v-if="isUserLoggedIn" class="author-name">
-          {{ currentUserEmail }}
-        </li>
-        <li class="dropdown">
-          <a href="#" class="dropbtn"><i class="bi bi-person-circle"></i></a>
+        <li class="nav-item dropdown dropdown-right">
+          <a href="#" class="dropbtn"><i :class="{ 'admin-color': isUserAdmin }" class="bi bi-person-circle"></i></a>
           <div class="dropdown-content">
-            <router-link to="/login-page">Log in</router-link>
-            <router-link to="/register-page">Register</router-link>
+            <router-link v-if="!isUserLoggedIn" to="/login-page">Login</router-link>
+            <router-link v-if="!isUserLoggedIn" to="/register-page">Register</router-link>
             <a href="" v-if="isUserLoggedIn" @click="logout">Logout</a>
           </div>
         </li>
-        <li>
-          <section class="search">
-            <form action="search-results.html" method="get">
-              <input type="text" name="q" placeholder="Search Sports News" style="font-size: 20px;">
-              <button type="submit" style="font-size: 20px;"><i class="bi bi-search"></i>Search</button>
-            </form>
-          </section>
+        <li v-if="isUserLoggedIn" class="author-name" :class="{ 'admin-color': isUserAdmin }">
+          {{ currentUserEmail }}
         </li>
       </ul>
     </nav>
@@ -104,10 +79,17 @@ export default {
 </template>
 
 <style scoped lang="scss">
+.admin-color {
+  color: goldenrod;
+}
+
 header {
-  background-color: rgba(221, 221, 221, 0.99);
+  background-color: #333;
   color: black;
-  padding: 10px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 999;
 }
 
 header ul li a {
@@ -150,16 +132,12 @@ header ul li:hover .premium-text {
 
 header ul li:nth-child(5) .image-text {
   bottom: -40px;
-  right: -26px;
+  right: -20px;
 }
 
 header ul li:nth-child(6) .image-text {
   bottom: -40px;
   right: -26px;
-}
-
-header ul li:nth-child(5) .image-text {
-  text-align: center;
 }
 
 body {
@@ -181,6 +159,10 @@ main {
   transform: scale(1.3);
 }
 
+nav ul li.nav-item {
+  margin-right: 15px;
+}
+
 nav ul li:first-child a {
   font-size: 30px;
 }
@@ -193,19 +175,6 @@ nav ul li:first-child a::before {
 nav ul li:first-child a::after {
   content: "sport";
   color: white;
-}
-
-nav {
-  margin-left: -10px;
-  margin-top: 25px;
-  position: fixed;
-  top: -60px;
-  width: 110%;
-  background-color: #333;
-  color: #fff;
-  padding: 15px;
-  text-align: center;
-  transition: top 0.3s;
 }
 
 .premium-image {
@@ -238,37 +207,15 @@ nav ul li a:hover {
   transition: transform 0.3s;
 }
 
-.feature {
-  list-style: none;
-}
-
 nav a {
   text-decoration: none;
   color: #fff;
-}
-
-nav ul li:nth-child(1) a:hover {
-  color: dodgerblue;
-}
-
-nav ul li:nth-child(2) a:hover {
-}
-
-nav ul li:nth-child(3) a:hover {
-  color: red;
-}
-
-.search {
-  position: sticky;
-  margin-top: 25px;
-  margin-left: 47vw;
 }
 
 .dropdown {
   position: relative;
   display: inline-block;
   margin-left: auto;
-  left: 46vw;
   z-index: 1;
   transform: scale(1.3);
   color: black;
@@ -277,8 +224,8 @@ nav ul li:nth-child(3) a:hover {
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #f9f9f9;
-  min-width: 80px;
+  background-color: lightgrey;
+  min-width: 60px;
   z-index: 2;
 }
 
@@ -295,34 +242,28 @@ nav ul li:nth-child(3) a:hover {
 }
 
 .dropdown-content a:hover {
-  background-color: #f1f1f1;
+  background-color: lightgrey;
 }
 
 .dropdown:hover .dropdown-content {
   display: block;
 }
 
-@media (max-width: 1540px) {
-  .dropdown {
-    position: sticky;
-    left: 62vw;
-    margin-top: 2.4vw;
-    transform: scale(1.3);
+@media (max-width: 1920px) {
+  nav ul li.dropdown-right {
+    margin-left: 52vw;
   }
+}
 
-  .search {
-    position: sticky;
-    margin-left: 35vw;
-  }
-
-  .search input, .search button {
-    font-size: 16px;
+@media (max-width: 1580px) {
+  nav ul li.dropdown-right {
+    margin-left: 40vw;
   }
 }
 
 @media (max-width: 1360px) {
-  header ul li:nth-child(6) {
-    left: 28vw;
+  nav ul li.dropdown-right {
+    margin-left: 32vw;
   }
 }
 
@@ -334,46 +275,11 @@ nav ul li:nth-child(3) a:hover {
     margin-top: 10px;
     text-align: center;
   }
-  .search {
-    text-align: center;
-    margin-right: auto;
-    margin-left: auto;
-    font-size: 16px;
-  }
-
-  .search input, .search button {
-    font-size: 16px;
-  }
-}
-@media (max-width: 480px) {
-  .feature {
-    flex-basis: 100%;
-  }
-
-  .search {
-    font-size: 12px;
-  }
 }
 
 nav {
   position: relative;
   z-index: 1;
-}
-
-.cta-button {
-  display: inline-block;
-  padding: 15px 30px;
-  background-color: #FF5733;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 5px;
-}
-
-.search button:hover {
-  background-color: lightgray;
-  color: white;
-  transform: scale(1.15);
-  transition: background-color 0.3s, color 0.3s, transform 0.3s;
 }
 
 p {

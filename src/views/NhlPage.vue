@@ -67,33 +67,56 @@ export default {
           return;
         }
 
-        const editedArticleIndex = this.nhlArticles.findIndex(
+        const editedArticleIndex = this.articles.findIndex(
             (article) => article.id === this.editingArticle.id
         );
 
         if (editedArticleIndex !== -1) {
-
-          // Pripraví dáta na odoslanie
           const formData = new FormData();
           formData.append('category', this.editedCategory);
           formData.append('title', this.editedTitle);
           formData.append('description', this.editedDescription);
 
-          if (this.editedImage instanceof File) {
-            formData.append('image', this.editedImage);
-          }
+          if (this.editedImage) {
+            // Konvertujeme obrázok na base64 a pridáme ho do formData
+            const reader = new FileReader();
+            reader.readAsDataURL(this.editedImage);
 
-          try {
-            const response = await axios.put(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData);
+            reader.onload = (event) => {
+              formData.append('image', event.target.result);
 
-            this.nhlArticles[editedArticleIndex] = response.data;
+              this.updateArticle(formData);
 
-            this.cancelEdit();
-          } catch (error) {
-            console.error('Error updating article:', error);
+              this.cancelEdit()
+            };
+          } else {
+            this.updateArticle(formData);
+
+            this.cancelEdit()
           }
         }
       }
+    },
+
+    updateArticle(formData) {
+      axios.patch(`http://127.0.0.1:8000/api/articles/${this.editingArticle.id}/`, formData)
+          .then(response => {
+            // Úspešná odpoveď
+            console.log('Response from server:', response.data);
+
+            // Presmeruj na hlavnú stránku
+            this.$router.push('/');
+
+            this.fetchNhlArticles();
+
+            this.cancelEdit()
+          })
+          .catch(error => {
+            // Spracuj error
+            console.error('Error sending data to server:', error);
+
+            this.error = "Error submitting data. Please try again.";
+          });
     },
 
     handleImageUpload(event) {
@@ -264,7 +287,6 @@ export default {
 </script>
 
 <template>
-<!--  <ShowCommercials></ShowCommercials>-->
   <div>
     <div v-if="!editingArticle" class="nhl-articles">
       <div v-if="nhlArticles.length > 0">
@@ -377,7 +399,7 @@ export default {
         <!-- Zobrazenie komentára -->
         <div class="comment">
           <div class="comment-header">
-<!--            <span class="comment-author">Author:</span>- -->
+            <!--            <span class="comment-author">Author:</span>- -->
             <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
             <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
             <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
@@ -634,11 +656,15 @@ textarea {
   font-weight: bold;
 }
 
+.article-box:first-child {
+  margin-top: 150px;
+}
+
 .article-box {
   border: 2px solid #ddd;
   border-radius: 8px;
   margin: 20px auto;
-  width: 30%;
+  width: 45vw;
   overflow: hidden;
   transition: transform 0.3s ease;
 }

@@ -1,21 +1,22 @@
+
 <script>
 import axios from "axios";
 
 export default {
-  name: "ArticleLoadAndPagination",
+  name: "NhlPage",
 
   data() {
     return {
-      articles: [],
-      currentPage: 1,
-      pageSize: 6,
+      pmlArticles: [],
 
+      // Úprava článku
       editingArticle: null,
       editedTitle: "",
       editedCategory: "",
       editedDescription: "",
       editedImage: null,
 
+      // Pridávanie komentu
       comments: [],
       showCommentsModal: false,
       newCommentContent: "",
@@ -23,6 +24,7 @@ export default {
 
       discussionMode: false,
 
+      // Úprava komentu
       editingComment: null,
       editedCommentContent: "",
     };
@@ -32,56 +34,26 @@ export default {
     showButtons() {
       return this.$store.state.user;
     },
-
-    // výpočty
-    totalPages() {
-      return Math.ceil(this.articles.length / this.pageSize);
-    },
-
-    pagedArticles() {
-      const start = (this.currentPage - 1) * this.pageSize;
-      const end = start + this.pageSize;
-      return this.articles.slice(start, end);
-    },
   },
 
   mounted() {
-    // životný cyklus komponentu
-    this.fetchArticles();
+    this.fetchPmlArticles();
   },
 
   methods: {
-    // Metódy pre získanie článkov
-    async fetchArticles() {
+    async fetchPmlArticles() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/articles/');
-        console.log('Response:', response.data);
-
-        if (response.data) {
-          this.articles = response.data.reverse();
-        } else {
-          console.error('Error fetching articles: Response data or results are null or undefined');
-        }
+        const response = await axios.get("http://127.0.0.1:8000/api/articles/", {
+          params: {
+            category: "PML",
+          },
+        });
+        this.pmlArticles = response.data.reverse();
       } catch (error) {
-        console.error('Error fetching articles:', error);
+        console.error("Error fetching NHL articles:", error);
       }
     },
 
-    confirmRemoveArticle(articleId) {
-      const isConfirmed = window.confirm("Do you really want to delete this article?");
-      if (isConfirmed) {
-        axios.delete(`http://127.0.0.1:8000/api/articles/${articleId}/`)
-            .then(() => {
-              this.articles = this.articles.filter(article => article.id !== articleId);
-            })
-            .catch(error => {
-              console.error('\n' + 'Error deleting article', error);
-            });
-      }
-      this.fetchArticles();
-    },
-
-    // Metódy pre úpravu článkov
     async saveEditedArticle() {
       if (this.editingArticle) {
         if (this.editedTitle.length < 20 || this.editedTitle.length > 100) {
@@ -135,7 +107,7 @@ export default {
             // Presmeruj na hlavnú stránku
             this.$router.push('/');
 
-            this.fetchArticles();
+            this.fetchPmlArticles();
 
             this.cancelEdit()
           })
@@ -145,18 +117,6 @@ export default {
 
             this.error = "Error submitting data. Please try again.";
           });
-    },
-
-    editArticle(articleId) {
-      const articleToEdit = this.articles.find(article => article.id === articleId);
-
-      if (articleToEdit) {
-        this.editingArticle = articleToEdit;
-        this.editedTitle = articleToEdit.title;
-        this.editedCategory = articleToEdit.category;
-        this.editedDescription = articleToEdit.description;
-        this.editedImage = null;
-      }
     },
 
     handleImageUpload(event) {
@@ -172,34 +132,6 @@ export default {
       this.editedImage = null;
     },
 
-    // Metódy pre diskusiu a komentáre
-    showDiscussion(articleId) {
-      this.discussionMode = true;
-      this.selectedArticleId = articleId;
-      this.getCommentsForArticle(articleId);
-    },
-
-    cancelDiscussion() {
-      this.discussionMode = false;
-    },
-
-    async getCommentsForArticle(selectedArticleId) {
-      try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/comments/?post=${selectedArticleId}`);
-        const filteredComments = response.data.filter(comment => comment.article === selectedArticleId);
-
-        if (filteredComments.length > 0) {
-          this.comments = filteredComments.reverse();
-        } else {
-          this.comments = [];
-          console.log('No comments for this article.');
-        }
-      } catch (error) {
-        console.error('Error getting comments for article:', error);
-      }
-    },
-
-    // Metódy pre úpravu komentárov
     editComment(commentId) {
       this.editingComment = this.comments.find(comment => comment.id === commentId);
     },
@@ -210,6 +142,8 @@ export default {
       if (isConfirmed) {
         try {
           await axios.delete(`http://127.0.0.1:8000/api/comments/${comment.id}/`);
+
+          // Aktualizuje komenty - odstráni už odstránený koment
           this.comments = this.comments.filter(c => c.id !== comment.id);
         } catch (error) {
           console.error('Error deleting comment', error);
@@ -236,9 +170,13 @@ export default {
         if (editedCommentIndex !== -1) {
           const formData = new FormData();
           formData.append('content', this.editedCommentContent);
+          // Aktualizovaný čas úpravy
           formData.append('edited_at', new Date().toISOString());
+
           try {
-            const response = await axios.patch(`http://127.0.0.1:8000/api/comments/${this.editingComment.id}/`, formData);
+            // Put vyžaduje zadať všetky polia, patch nie
+            const response = await axios.patch(`http://127.0.0.1:8000/api/comments/${this.editingComment.id}/`,formData);
+
             this.comments[editedCommentIndex] = response.data;
 
             this.cancelEditComment();
@@ -249,7 +187,65 @@ export default {
       }
     },
 
-    // Metódy pre správu komentárov
+    confirmRemoveArticle(articleId) {
+      const isConfirmed = window.confirm("Do you really want to delete this article?");
+      if (isConfirmed) {
+        // Zavolá serverový endpoint na odstránenie článku
+        axios.delete(`http://127.0.0.1:8000/api/articles/${articleId}/`)
+            .then(() => {
+              // Aktualizuje články - odstráni už odstránený článok
+              this.pmlArticles = this.pmlArticles.filter(article => article.id !== articleId);
+            })
+            .catch(error => {
+              console.error('\n' + 'Error deleting article', error);
+            });
+      }
+      this.fetchPmlArticles();
+    },
+
+    showDiscussion(articleId) {
+      this.discussionMode = true;
+      this.selectedArticleId = articleId;
+      this.getCommentsForArticle(articleId);
+    },
+
+    cancelDiscussion() {
+      this.discussionMode = false;
+    },
+
+    async getCommentsForArticle(selectedArticleId) {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/api/comments/?post=${selectedArticleId}`);
+        const filteredComments = response.data.filter(comment => comment.article === selectedArticleId);
+
+        if (filteredComments.length > 0) {
+          this.comments = filteredComments.reverse();
+        } else {
+          this.comments = [];
+          console.log('No comments for this article.');
+        }
+      } catch (error) {
+        console.error('Error getting comments for article:', error);
+      }
+    },
+
+    editArticle(articleId) {
+      const articleToEdit = this.pmlArticles.find(article => article.id === articleId);
+
+      if (articleToEdit) {
+        this.editingArticle = articleToEdit;
+        this.editedTitle = articleToEdit.title;
+        this.editedCategory = articleToEdit.category;
+        this.editedDescription = articleToEdit.description;
+        this.editedImage = articleToEdit.image;
+      }
+    },
+
+    formatTimestamp(timestamp) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
+      return new Date(timestamp).toLocaleString(undefined, options);
+    },
+
     openComments(articleId) {
       console.log('Opening comments modal');
       this.showCommentsModal = true;
@@ -267,38 +263,24 @@ export default {
         console.error("Invalid comment content. Please enter a comment.");
         return;
       }
-
+      // Pripraví dáta na odoslanie
       const formData = new FormData();
+
       formData.append('content', this.newCommentContent);
       formData.append('created_at', new Date().toISOString());
+      formData.append('author', this.$store.state.user);
       formData.append('article', this.selectedArticleId);
-      formData.append('author', this.$store.state.user.id);
 
       axios.post(`http://127.0.0.1:8000/api/comments/`, formData)
           .then(response => {
             console.log("Comment added successfully:", response.data);
             this.getCommentsForArticle();
 
-            this.cancelAddComment();
-
             this.newCommentContent = "";
             this.selectedArticleId = null;
-          });
-    },
 
-    // Metódy pre stránkovanie
-    changePage(pageNumber) {
-      const totalPages = Math.ceil(this.articles.length / this.pageSize);
-
-      if (pageNumber >= 1 && pageNumber <= totalPages) {
-        this.currentPage = pageNumber;
-      }
-    },
-
-    // Metóda pre formátovanie dátumu
-    formatTimestamp(timestamp) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'};
-      return new Date(timestamp).toLocaleString(undefined, options);
+            this.cancelAddComment();
+          })
     },
   },
 };
@@ -306,41 +288,32 @@ export default {
 
 <template>
   <div>
-    <!-- Zobrazenie článkov -->
-    <div v-if="!editingArticle && pagedArticles && pagedArticles.length" class="nhl-articles">
-      <div v-for="article in pagedArticles" :key="article.id" class="news-box">
-        <!-- Tlačidlá pre úpravu a odstránenie -->
-        <button v-if="showButtons" @click="editArticle(article.id)" class="edit-article-btn">
-          <i class="bi bi-pencil-fill"></i>
-        </button>
-        <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
-          <i class="bi bi-x-lg"></i>
-        </button>
-
-        <!-- Obsah článku -->
-        <article class="news-item side-item cat-item">
-          <a :href="article.url" class="news-item-image">
-            <picture>
-              <img
-                  :src="article.image"
-                  :alt="article.title"
-                  decoding="async"
-                  data-nimg="responsive"
-                  class="side-article lazy-load"
-              />
-            </picture>
-          </a>
-          <div class="news-item-data">
-            <h2 class="news-item-title">
-              <p class="news-item-category">{{ article.category }}</p>
-              <a :href="article.url">{{ article.title }}</a>
-            </h2>
-            <p class="news-item-description">{{ article.description }}</p>
-            <div class="news-item-timestamp" style="font-size: 11px">
-              Created: {{ formatTimestamp(article.created_at) }}
+    <div v-if="!editingArticle" class="nhl-articles">
+      <div v-if="pmlArticles.length > 0">
+        <div v-for="article in pmlArticles" :key="article.id" class="article-box">
+          <div class="article-content">
+            <!-- Tlačidlá pre úpravu a odstránenie -->
+            <button v-if="showButtons" @click="editArticle(article.id)" class="edit-article-btn">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
+              <i class="bi bi-x-lg"></i>
+            </button>
+            <img :src="article.image" alt="Article Image" />
+            <p class="specification">{{ article.category }}</p>
+            <div class="title-content">
+              <p>{{ article.title }}</p>
             </div>
+
+            <div class="content">
+              <p>{{ article.description }}</p>
+            </div>
+            <p class="news-item-timestamp" style="font-size: 11px">
+              Created: {{ formatTimestamp(article.created_at) }}
+            </p>
+
             <div class="comments-content" style="font-size: 11px">
-              <button @click="showDiscussion(article.id)" style="font-size: 14px;" class="comments-button">
+              <button @click="showDiscussion(article.id)" style="font-size: 14px;" class="discussion-button">
                 <i class="bi bi-chat-dots"></i> Enter Discussion
               </button>
               <button v-if="showButtons"  @click="openComments(article.id)" style="font-size: 14px;" class="comments-button">
@@ -348,17 +321,9 @@ export default {
               </button>
             </div>
           </div>
-        </article>
+        </div>
       </div>
     </div>
-
-    <select v-model="specification" class="form-control rounded-3" id="specificationInput">
-      <option value="" disabled selected>Select a category</option>
-      <option value="NHL">NHL</option>
-      <option value="PML">PML</option>
-      <option value="F1">F1</option>
-      <option value="NBA">NBA</option>
-    </select>
 
     <!-- Úprava článku -->
     <div v-if="editingArticle" class="edit-form">
@@ -404,90 +369,76 @@ export default {
         <button @click="cancelEdit" class="btn btn-secondary">Cancel</button>
       </div>
     </div>
+  </div>
 
-    <!-- Pridanie komentáru -->
-    <div v-if="showCommentsModal" class="add-comment-form">
+  <!-- Pridanie komentáru -->
+  <div v-if="showCommentsModal" class="add-comment-form">
 
-      <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
-        Express your opinion
-      </div>
-
-      <div class="form-group">
-        <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
-        <textarea v-model="newCommentContent" id="newCommentContent" class="form-control"></textarea>
-      </div>
-
-      <div class="form-group" style="text-align: center; margin-top: 10px;">
-        <button v-if="showButtons" @click="addComment" class="btn btn-primary">Add Comment</button>
-        <button @click="cancelAddComment" class="btn btn-secondary">Cancel</button>
-      </div>
+    <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
+      Express your opinion
     </div>
 
-    <!-- Zobrazenie komentárov v diskusii -->
-    <div v-if="discussionMode" class="discussion-form">
-      <h3>Discussion</h3>
+    <div class="form-group">
+      <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
+      <textarea v-model="newCommentContent" id="newCommentContent" class="form-control"></textarea>
+    </div>
 
-      <div v-if="comments.length > 0">
-        <!-- Vypísať komentáre, ak sú k dispozícii -->
-        <div v-for="comment in comments" :key="comment.id" class="comment-container">
-          <!-- Zobrazenie komentára -->
-          <div class="comment">
-            <div class="comment-header">
-              <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
-              <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
-              <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
-              <button v-if="showButtons" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
+    <div class="form-group" style="text-align: center; margin-top: 10px;">
+      <button v-if="showButtons" @click="addComment" class="btn btn-primary">Add Comment</button>
+      <button @click="cancelAddComment" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
 
-            </div>
-            <div class="comment-content">{{ comment.content }}</div>
-            <div> ---------------------------------------------------------------------------- </div>
+  <!-- Zobrazenie komentárov v diskusii -->
+  <div v-if="discussionMode" class="discussion-form">
+    <h3>Discussion</h3>
+
+    <div v-if="comments.length > 0">
+      <!-- Vypísať komentáre, ak sú k dispozícii -->
+      <div v-for="comment in comments" :key="comment.id" class="comment-container">
+        <!-- Zobrazenie komentára -->
+        <div class="comment">
+          <div class="comment-header">
+            <!--            <span class="comment-author">Author:</span>- -->
+            <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
+            <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
+            <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+            <button v-if="showButtons" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
+          </div>
+          <div class="comment-content">{{ comment.content }}</div>
+          <div> ---------------------------------------------------------------------------- </div>
+        </div>
+
+        <!-- Úprava komentáru -->
+        <div v-if="editingComment" class="add-comment-form">
+
+          <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
+            Edit your Comment
           </div>
 
-          <!-- Úprava komentáru -->
-          <div v-if="editingComment" class="add-comment-form">
+          <div class="form-group">
+            <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
+            <textarea v-model="editedCommentContent" id="newCommentContent" class="form-control"></textarea>
+          </div>
 
-            <div class="text-body-secondary" style="font-size: 30px; margin-top: 10px; color: black">
-              Edit your Comment
-            </div>
-
-            <div class="form-group">
-              <label for="newCommentContent" style="font-size: 20px; color: black; text-align: left; display: block;">Content</label>
-              <textarea v-model="editedCommentContent" id="newCommentContent" class="form-control"></textarea>
-            </div>
-
-            <div class="form-group" style="text-align: center; margin-top: 10px;">
-              <button @click="saveEditedComment" class="btn btn-primary">Edit</button>
-              <button @click="cancelEditComment" class="btn btn-secondary">Cancel</button>
-            </div>
+          <div class="form-group" style="text-align: center; margin-top: 10px;">
+            <button @click="saveEditedComment" class="btn btn-primary">Edit</button>
+            <button @click="cancelEditComment" class="btn btn-secondary">Cancel</button>
           </div>
         </div>
       </div>
-
-      <div v-else>
-        <!-- ak nie sú k dispozícii žiadne komentáre -->
-        <p>No comments have been added yet.</p>
-      </div>
-
-      <div class="form-group" style="text-align: center; margin-top: 10px;">
-        <button @click="cancelDiscussion" class="btn btn-secondary">Cancel</button>
-      </div>
     </div>
 
-    <!-- Pagination -->
-    <div aria-label="Page navigation example" class="pagination-container">
-      <ul class="pagination">
-        <li class="page-item" :class="{ 'disabled': currentPage === 1 }">
-          <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">Previous</a>
-        </li>
-        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ 'active': currentPage === page }">
-          <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
-        </li>
-        <li class="page-item" :class="{ 'disabled': currentPage === totalPages }">
-          <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">Next</a>
-        </li>
-      </ul>
+    <div v-else>
+      <!-- ak nie sú k dispozícii žiadne komentáre -->
+      <p>No comments have been added yet.</p>
+    </div>
+
+    <div class="form-group" style="text-align: center; margin-top: 10px;">
+      <button @click="cancelDiscussion" class="btn btn-secondary">Cancel</button>
     </div>
   </div>
+
 </template>
 
 <style scoped lang="scss">
@@ -513,9 +464,8 @@ export default {
 }
 
 .comments-button {
-  margin-top: 10px;
-  margin-left: 5px;
   transition: transform 0.2s ease;
+  margin-left: 5px;
 }
 
 .discussion-button:hover {
@@ -555,10 +505,28 @@ export default {
   max-width: 600px;
   border: 2px solid #ddd;
   border-radius: 8px;
-  z-index: 900;
+  z-index: 999;
   margin: 0 auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
   overflow-y: auto;
+}
+
+.edit-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 500px;
+  height: 550px;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  max-width: 600px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  z-index: 999;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .add-comment-form {
@@ -618,53 +586,41 @@ textarea {
   transform: scale(1.15);
 }
 
-// Tlačidlo na odstránenie článku
-.remove-article-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  padding: 5px 10px;
-  background-color: #d02f2f;
-  border: none;
-  border-radius: 5px;
-  font-size: 1em;
-  transition: transform 0.2s ease;
-}
-
-.edit-article-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  cursor: pointer;
-  padding: 5px 10px;
-  background-color: cornflowerblue;
-  border: none;
-  border-radius: 5px;
-  font-size: 1em;
-  transition: transform 0.2s ease;
-}
-
-.edit-article-btn:hover, .remove-article-btn:hover {
-  transform: scale(1.15);
-}
-
-.news-box:first-child {
-  margin-top: 150px;
-}
-
-
-.news-box {
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  margin: 25px auto;
-  width: 45vw;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.news-box:hover {
+.article-box:hover {
   transform: scale(1.05);
+}
+
+.specification{
+  margin-top: 10px;
+  text-decoration: none;
+  color: #333;
+  background-color: #ddd;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.title-content {
+  font-size: 18px;
+  max-width: 100%;
+  text-align: center;
+  font-weight: bold;
+  overflow-y: auto;
+  overflow: hidden;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+
+.content {
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: center;
+  max-width: 100%;
+  margin-left: 15px;
+  margin-right: 15px;
+  overflow-y: auto;
+  overflow: hidden;
 }
 
 .news-item {
@@ -700,42 +656,62 @@ textarea {
   font-weight: bold;
 }
 
-.news-item-title {
-  margin-top: 10px;
-  font-size: 18px;
-  max-width: 100%;
-  text-align: center;
-  word-wrap: break-word;
-  margin-left: 10px;
-  margin-right: 10px;
+.article-box:first-child {
+  margin-top: 150px;
 }
 
-.news-item-description {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1.2;
-  text-align: center;
-  max-width: 100%;
-  margin-left: 15px;
-  margin-right: 15px;
-  word-wrap: break-word;
+.article-box {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin: 20px auto;
+  width: 45vw;
   overflow: hidden;
+  transition: transform 0.3s ease;
 }
 
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #ddd;
-  padding: 10px;
+.specification {
+  font-size: 16px;
 }
 
-.pagination {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-  padding: 0;
+.article-content img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #555;
+}
+
+// Tlačidlo na odstránenie článku
+.remove-article-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  padding: 5px 10px;
+  background-color: #d02f2f;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: transform 0.2s ease;
+}
+
+.edit-article-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  padding: 5px 10px;
+  background-color: cornflowerblue;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: transform 0.2s ease;
+}
+
+.edit-article-btn:hover, .remove-article-btn:hover {
+  transform: scale(1.15);
 }
 </style>

@@ -32,6 +32,7 @@ export default {
 
             this.$store.commit("setUser", response.data.user);
             this.$store.commit("setToken", response.data.token);
+            this.$store.commit("setAdmin", response.data.admin);
 
             // Presmeruj na hlavnú stránku
             this.$router.push('/');

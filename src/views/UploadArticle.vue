@@ -6,7 +6,7 @@ export default {
   data() {
     return {
       title: "",
-      specification: "",
+      category: "",
       description: "",
       image: null,
       error: null,
@@ -41,8 +41,8 @@ export default {
         return;
       }
 
-      if (this.specification.length === 0 || !["NHL", "PML", "F1", "NBA"].includes(this.specification)) {
-        this.error = "Invalid specification!";
+      if (this.category.length === 0 || !["NHL", "PML", "F1", "NBA"].includes(this.category)) {
+        this.error = "Invalid category!";
         return;
       }
 
@@ -55,13 +55,11 @@ export default {
         this.error = "Please upload an image.";
         return;
       }
-
       // Pripraví dáta na odoslanie
       const formData = new FormData();
-      formData.append('category', this.specification);
+      formData.append('category', this.category);
       formData.append('title', this.title);
       formData.append('description', this.description);
-      // formData.append('author', this.$store.getters.getUser);
 
       if (this.image) {
         // Konvertujeme obrázok na base64 a pridáme ho do formData
@@ -94,7 +92,7 @@ export default {
             this.title = "";
             this.description = "";
             this.image = null;
-            this.specification = "";
+            this.category = "";
 
             // Vyčisti error
             this.error = null;
@@ -136,17 +134,17 @@ export default {
             </div>
 
             <div class="form-group">
-              <label for="specificationInput" style="font-size: 22px; color: black; text-align: left; display: block;">Specification</label>
+              <label for="specificationInput" style="font-size: 22px; color: black; text-align: left; display: block;">Category</label>
               <div class="form-floating mb-3">
-                <select v-model="specification" class="form-control rounded-3" id="specificationInput">
-                  <option value="" disabled selected>Select a specification</option>
+                <select v-model="category" class="form-control rounded-3" id="specificationInput">
+                  <option value="" disabled selected>Select a category</option>
                   <option value="NHL">NHL</option>
                   <option value="PML">PML</option>
                   <option value="F1">F1</option>
                   <option value="NBA">NBA</option>
                 </select>
-                <label for="specificationInput" :class="{ 'active': specification }" style="font-size: 16px; color: black; text-align: left;"><i class="bi bi-file-text"></i>
-                  {{ specification ? '' : '' }}</label>
+                <label for="specificationInput" :class="{ 'active': category }" style="font-size: 16px; color: black; text-align: left;"><i class="bi bi-file-text"></i>
+                  {{ category ? '' : '' }}</label>
               </div>
             </div>
 
