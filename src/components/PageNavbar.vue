@@ -23,7 +23,6 @@ export default {
       this.$store.commit('logout');
       this.$router.push('/');
     },
-
   },
 };
 </script>
@@ -40,8 +39,8 @@ export default {
         </li>
         <li>
           <a href="#">
-            <img src="../assets/Images/crown.png" alt="Image 1" style="width: 60px; height: auto; margin-left: -5px">
-            <span class="premium-text">Premium+</span>
+            <img src="../assets/Images/heart.webp" alt="Image 1" style="width: 50px; height: auto; margin-left: -5px">
+            <span class="premium-text">Favourite</span>
           </a>
         </li>
         <li>
@@ -85,7 +84,7 @@ export default {
 
 header {
   background-color: #333;
-  color: black;
+  color: #ffffff;
   position: fixed;
   width: 100%;
   top: 0;
@@ -127,7 +126,7 @@ header ul li:hover .image-text {
 
 header ul li:hover .premium-text {
   opacity: 1;
-  color: #b09604;
+  color: #d02f2f;
 }
 
 header ul li:nth-child(5) .image-text {
@@ -263,7 +262,7 @@ nav a {
 
 @media (max-width: 1360px) {
   nav ul li.dropdown-right {
-    margin-left: 32vw;
+    margin-left: 30vw;
   }
 }
 

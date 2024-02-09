@@ -19,7 +19,7 @@ export default createStore({
     },
   },
   mutations: {
-    setUser(state, user) {
+    setUser(state,  user) {
       state.user = user;
     },
     setToken(state, token) {
@@ -31,10 +31,9 @@ export default createStore({
     logout(state) {
       state.user = null;
       state.token = null;
-      state.email = null;
     }
   },
-  //keby som chcel na backend
+  // V prípade posielania na backend
   actions: {
   },
   modules: {

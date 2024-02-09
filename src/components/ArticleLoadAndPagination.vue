@@ -29,6 +29,11 @@ export default {
   },
 
   computed: {
+    isUserAdmin() {
+      const user = this.$store.getters.getUser;
+      return user ? user.admin : false;
+    },
+
     showButtons() {
       return this.$store.state.user;
     },
@@ -80,6 +85,10 @@ export default {
       }
       this.fetchArticles();
     },
+
+    // addToFavourites(articleId) {
+    //
+    // },
 
     // Metódy pre úpravu článkov
     async saveEditedArticle() {
@@ -310,12 +319,16 @@ export default {
     <div v-if="!editingArticle && pagedArticles && pagedArticles.length" class="nhl-articles">
       <div v-for="article in pagedArticles" :key="article.id" class="news-box">
         <!-- Tlačidlá pre úpravu a odstránenie -->
-        <button v-if="showButtons" @click="editArticle(article.id)" class="edit-article-btn">
+        <button v-if="isUserAdmin" @click="editArticle(article.id)" class="edit-article-btn">
           <i class="bi bi-pencil-fill"></i>
         </button>
-        <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
+        <button v-if="isUserAdmin" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
           <i class="bi bi-x-lg"></i>
         </button>
+        <button v-if="showButtons && this.$store.state.user" @click="addToFavourites(article.id)" class="add-to-favourites-btn">
+          <i class="bi bi-heart-fill"></i>
+        </button>
+
 
         <!-- Obsah článku -->
         <article class="news-item side-item cat-item">
@@ -435,9 +448,8 @@ export default {
             <div class="comment-header">
               <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
               <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
-              <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
-              <button v-if="showButtons" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
-
+              <button v-if="showButtons && (comment.author === this.$store.state.user.id)" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+              <button v-if="showButtons && (isUserAdmin || (comment.author === this.$store.state.user.id && isUserAdmin))" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
             </div>
             <div class="comment-content">{{ comment.content }}</div>
             <div> ---------------------------------------------------------------------------- </div>
@@ -499,6 +511,24 @@ export default {
   transition: transform 0.2s ease;
 }
 
+.add-to-favourites-btn {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  cursor: pointer;
+  padding: 5px 10px;
+  background-color: #ce1717;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: transform 0.2s ease;
+}
+
+.add-to-favourites-btn:hover {
+  transform: scale(1.15);
+}
+
 .edit-comment-btn:hover {
   transform: scale(1.05);
   background-color: cornflowerblue;
@@ -544,6 +574,7 @@ export default {
 }
 
 .discussion-form {
+  margin-top: 60px;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -556,7 +587,6 @@ export default {
   border: 2px solid #ddd;
   border-radius: 8px;
   z-index: 900;
-  margin: 0 auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
 }
