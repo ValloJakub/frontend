@@ -38,10 +38,10 @@ export default {
           </a>
         </li>
         <li>
-          <a href="#">
-            <img src="../assets/Images/heart.webp" alt="Image 1" style="width: 50px; height: auto; margin-left: -5px">
+          <router-link v-if="isUserLoggedIn" to="/favourites-page">
+            <img src="../assets/Images/heart.webp" alt="Image 1" style="width: 40px; height: auto; margin-left: -5px">
             <span class="premium-text">Favourite</span>
-          </a>
+          </router-link>
         </li>
         <li>
           <router-link to="/nhl-page">
@@ -55,7 +55,7 @@ export default {
             <span class="image-text">Premier League</span>
           </router-link>
         </li>
-        <li  v-if="isUserLoggedIn" class="upload-article">
+        <li  v-if="isUserLoggedIn && isUserAdmin" class="upload-article">
           <router-link to="/upload-page">
             <div style="font-size: 25px">Upload Article</div>
 

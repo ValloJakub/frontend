@@ -52,25 +52,30 @@ export default {
 
   mounted() {
     // životný cyklus komponentu
-    this.fetchArticles();
+    this.fetchFavouriteArticles();
   },
 
   methods: {
-    // Metódy pre získanie článkov
-    async fetchArticles() {
+    // Metódy pre získanie obľúbených článkov
+    async fetchFavouriteArticles() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/articles/');
-        console.log('Response:', response.data);
+        const userId = this.$store.state.user.id;
 
-        if (response.data) {
-          this.articles = response.data.reverse();
-        } else {
-          console.error('Error fetching articles: Response data or results are null or undefined');
-        }
+        const responseFavourites = await axios.get(`http://127.0.0.1:8000/api/favorites/?user=${userId}`);
+        const favoriteArticles = responseFavourites.data;
+
+        const responseArticles = await axios.get('http://127.0.0.1:8000/api/articles/');
+        const allArticles = responseArticles.data;
+
+        // Filtruj články na základe ich ID a používateľovho ID
+        this.articles = allArticles.filter(article => {
+          return favoriteArticles.some(favorite => favorite.article === article.id && favorite.user === userId);
+        }).reverse();
       } catch (error) {
-        console.error('Error fetching articles:', error);
+        console.error('Error fetching favorite articles:', error);
       }
     },
+
 
     confirmRemoveArticle(articleId) {
       const isConfirmed = window.confirm("Do you really want to delete this article?");
@@ -83,29 +88,7 @@ export default {
               console.error('\n' + 'Error deleting article', error);
             });
       }
-      this.fetchArticles();
-    },
-
-    // Pridanie článku do obľúbených
-    async addToFavourites(userId, articleId) {
-      const isConfirmed = window.confirm('Do you really want to add this article to your favorites?');
-
-      if (!isConfirmed) {
-        return;
-      }
-
-      try {
-        const response = await axios.post(`http://127.0.0.1:8000/api/favorites/`, {
-          user: userId,
-          article: articleId,
-        });
-
-        console.log('Article added to favorites:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('Error adding article to favorites:', error);
-        throw error;
-      }
+      this.fetchFavouriteArticles();
     },
 
     // Metódy pre úpravu článkov
@@ -162,7 +145,7 @@ export default {
             // Presmeruj na hlavnú stránku
             this.$router.push('/');
 
-            this.fetchArticles();
+            this.fetchFavouriteArticles();
 
             this.cancelEdit()
           })
@@ -343,10 +326,6 @@ export default {
         <button v-if="isUserAdmin" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
           <i class="bi bi-x-lg"></i>
         </button>
-        <button v-if="showButtons && this.$store.state.user" @click="addToFavourites(this.$store.state.user.id, article.id)" class="add-to-favourites-btn">
-          <i class="bi bi-heart-fill"></i>
-        </button>
-
 
         <!-- Obsah článku -->
         <article class="news-item side-item cat-item">
@@ -381,6 +360,10 @@ export default {
           </div>
         </article>
       </div>
+    </div>
+
+    <div v-else style="margin-top: 50vh; font-size: 30px" >
+      <p>You have no favourite articles!</p>
     </div>
 
     <select v-model="specification" class="form-control rounded-3" id="specificationInput">

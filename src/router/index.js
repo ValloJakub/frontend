@@ -5,6 +5,7 @@ import NhlPage from "@/views/NhlPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
 import UploadArticle from "@/views/UploadArticle.vue";
 import PmlPage from "@/views/PmlPage.vue";
+import FavouriteArticlesPage from "@/views/FavouriteArticlesPage.vue";
 const routes = [
   {
     path: '/',
@@ -15,6 +16,11 @@ const routes = [
     path: '/login-page',
     name: 'LoginPage',
     component: LoginPage
+  },
+  {
+    path: '/favourites-page',
+    name: 'FavouriteArticlesPage',
+    component: FavouriteArticlesPage
   },
   {
     path: '/nhl-page',

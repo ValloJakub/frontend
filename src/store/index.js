@@ -3,6 +3,7 @@ import { createStore } from 'vuex';
 export default createStore({
   state: {
     user: null,
+    userId: null,
     token: null,
     email: null,
     admin: null,
@@ -10,6 +11,9 @@ export default createStore({
   getters: {
     getUser(state) {
       return state.user;
+    },
+    getUserId(state) {
+      return state.userId;
     },
     getEmail(state) {
       return state.email;
@@ -21,6 +25,7 @@ export default createStore({
   mutations: {
     setUser(state,  user) {
       state.user = user;
+      state.userId = user ? user.id : null;
     },
     setToken(state, token) {
       state.token = token;

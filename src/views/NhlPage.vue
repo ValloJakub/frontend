@@ -31,6 +31,11 @@ export default {
   },
 
   computed: {
+    isUserAdmin() {
+      const user = this.$store.getters.getUser;
+      return user ? user.admin : false;
+    },
+
     showButtons() {
       return this.$store.state.user;
     },
@@ -51,6 +56,27 @@ export default {
         this.nhlArticles = response.data.reverse();
       } catch (error) {
         console.error("Error fetching NHL articles:", error);
+      }
+    },
+
+    async addToFavourites(userId, articleId) {
+      const isConfirmed = window.confirm('Do you really want to add this article to your favorites?');
+
+      if (!isConfirmed) {
+        return;
+      }
+
+      try {
+        const response = await axios.post(`http://127.0.0.1:8000/api/favorites/`, {
+          user: userId,
+          article: articleId,
+        });
+
+        console.log('Article added to favorites:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error adding article to favorites:', error);
+        throw error;
       }
     },
 
@@ -299,6 +325,10 @@ export default {
             <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
               <i class="bi bi-x-lg"></i>
             </button>
+            <button v-if="showButtons && this.$store.state.user" @click="addToFavourites(this.$store.state.user.id, article.id)" class="add-to-favourites-btn">
+              <i class="bi bi-heart-fill"></i>
+            </button>
+
             <img :src="article.image" alt="Article Image" />
             <p class="specification">{{ article.category }}</p>
             <div class="title-content">
@@ -583,6 +613,24 @@ textarea {
 
 .save-button:hover,
 .cancel-button:hover {
+  transform: scale(1.15);
+}
+
+.add-to-favourites-btn {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  cursor: pointer;
+  padding: 5px 10px;
+  background-color: #ce1717;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: transform 0.2s ease;
+}
+
+.add-to-favourites-btn:hover {
   transform: scale(1.15);
 }
 
