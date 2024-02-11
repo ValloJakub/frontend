@@ -93,7 +93,7 @@ export default {
           return;
         }
 
-        const editedArticleIndex = this.articles.findIndex(
+        const editedArticleIndex = this.pmlArticles.findIndex(
             (article) => article.id === this.editingArticle.id
         );
 
@@ -104,7 +104,7 @@ export default {
           formData.append('description', this.editedDescription);
 
           if (this.editedImage) {
-            // Konvertujeme obrázok na base64 a pridáme ho do formData
+            // Konvertujem obrázok na base64 a pridáme ho do formData
             const reader = new FileReader();
             reader.readAsDataURL(this.editedImage);
 
@@ -263,7 +263,7 @@ export default {
         this.editedTitle = articleToEdit.title;
         this.editedCategory = articleToEdit.category;
         this.editedDescription = articleToEdit.description;
-        this.editedImage = articleToEdit.image;
+        this.editedImage = null;
       }
     },
 
@@ -321,7 +321,7 @@ export default {
             <button v-if="isUserAdmin" @click="editArticle(article.id)" class="edit-article-btn">
               <i class="bi bi-pencil-fill"></i>
             </button>
-            <button v-if="isUserAdmin" @click="editArticle(article.id)" class="edit-article-btn">
+            <button v-if="isUserAdmin" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
               <i class="bi bi-x-lg"></i>
             </button>
             <button v-if="showButtons && this.$store.state.user" @click="addToFavourites(this.$store.state.user.id, article.id)" class="add-to-favourites-btn">

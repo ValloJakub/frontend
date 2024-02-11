@@ -93,7 +93,7 @@ export default {
           return;
         }
 
-        const editedArticleIndex = this.articles.findIndex(
+        const editedArticleIndex = this.nhlArticles.findIndex(
             (article) => article.id === this.editingArticle.id
         );
 
@@ -104,7 +104,7 @@ export default {
           formData.append('description', this.editedDescription);
 
           if (this.editedImage) {
-            // Konvertujeme obrázok na base64 a pridáme ho do formData
+            // Konvertujem obrázok na base64 a pridám ho do formData
             const reader = new FileReader();
             reader.readAsDataURL(this.editedImage);
 
@@ -200,7 +200,7 @@ export default {
           formData.append('edited_at', new Date().toISOString());
 
           try {
-            // Put vyžaduje zadať všetky polia, patch nie
+            // Put vyžaduje zadať všetky polia, Patch nie
             const response = await axios.patch(`http://127.0.0.1:8000/api/comments/${this.editingComment.id}/`,formData);
 
             this.comments[editedCommentIndex] = response.data;
@@ -263,7 +263,7 @@ export default {
         this.editedTitle = articleToEdit.title;
         this.editedCategory = articleToEdit.category;
         this.editedDescription = articleToEdit.description;
-        this.editedImage = articleToEdit.image;
+        this.editedImage = null;
       }
     },
 

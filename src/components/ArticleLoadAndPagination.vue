@@ -133,7 +133,7 @@ export default {
           formData.append('description', this.editedDescription);
 
           if (this.editedImage) {
-            // Konvertujeme obrázok na base64 a pridáme ho do formData
+            // Konvertujem obrázok na base64 a pridám ho do formData
             const reader = new FileReader();
             reader.readAsDataURL(this.editedImage);
 
