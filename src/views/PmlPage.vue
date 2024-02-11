@@ -289,24 +289,23 @@ export default {
         console.error("Invalid comment content. Please enter a comment.");
         return;
       }
-      // Pripraví dáta na odoslanie
-      const formData = new FormData();
 
+      const formData = new FormData();
       formData.append('content', this.newCommentContent);
       formData.append('created_at', new Date().toISOString());
-      formData.append('author', this.$store.state.user);
       formData.append('article', this.selectedArticleId);
+      formData.append('author', this.$store.state.user.id);
 
       axios.post(`http://127.0.0.1:8000/api/comments/`, formData)
           .then(response => {
             console.log("Comment added successfully:", response.data);
             this.getCommentsForArticle();
 
+            this.cancelAddComment();
+
             this.newCommentContent = "";
             this.selectedArticleId = null;
-
-            this.cancelAddComment();
-          })
+          });
     },
   },
 };
@@ -319,10 +318,10 @@ export default {
         <div v-for="article in pmlArticles" :key="article.id" class="article-box">
           <div class="article-content">
             <!-- Tlačidlá pre úpravu a odstránenie -->
-            <button v-if="showButtons" @click="editArticle(article.id)" class="edit-article-btn">
+            <button v-if="isUserAdmin" @click="editArticle(article.id)" class="edit-article-btn">
               <i class="bi bi-pencil-fill"></i>
             </button>
-            <button v-if="showButtons" @click="confirmRemoveArticle(article.id)" class="remove-article-btn">
+            <button v-if="isUserAdmin" @click="editArticle(article.id)" class="edit-article-btn">
               <i class="bi bi-x-lg"></i>
             </button>
             <button v-if="showButtons && this.$store.state.user" @click="addToFavourites(this.$store.state.user.id, article.id)" class="add-to-favourites-btn">
@@ -433,8 +432,8 @@ export default {
             <!--            <span class="comment-author">Author:</span>- -->
             <span v-if="comment.edited_at" class="comment-timestamp">{{ formatTimestamp(comment.edited_at) }} (edited)</span>
             <span v-else class="comment-timestamp">{{ formatTimestamp(comment.created_at) }}</span>
-            <button v-if="showButtons" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
-            <button v-if="showButtons" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
+            <button v-if="showButtons && (comment.author === this.$store.state.user.id)" @click="editComment(comment.id)" class="edit-comment-btn">Edit</button>
+            <button v-if="showButtons && (isUserAdmin || (comment.author === this.$store.state.user.id && isUserAdmin))" @click="deleteComment(comment)" class="delete-comment-btn">Delete</button>
           </div>
           <div class="comment-content">{{ comment.content }}</div>
           <div> ---------------------------------------------------------------------------- </div>
